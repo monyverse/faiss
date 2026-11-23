@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FAISS copilot: embed demo</title>
+    <!-- A stand-in for a host portal. Its styles are deliberately loud: none of them should reach
+         into the copilot, and none of the copilot's should leak out. -->
+    <style>
+      body { margin: 0; font-family: Georgia, serif; background: #f4f1ec; color: #2b2b2b; }
+      header { background: #7a0f26; color: #fff; padding: 18px 24px; }
+      main { max-width: 960px; margin: 0 auto; padding: 24px; }
+      p, button, textarea { font-size: 19px; color: darkgreen; }
+      button { border: 3px dashed hotpink; }
+      .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0; font: 14px system-ui; }
+      .controls select, .controls input { font: inherit; padding: 6px 8px; }
+      faiss-copilot { height: 620px; max-width: 100%; }
+      code { background: #e7e1d6; padding: 2px 5px; border-radius: 4px; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <header><strong>Capability Hub</strong> (stand-in host page)</header>
+    <main>
+      <p>This paragraph and the dashed button belong to the host page. The assistant below is the <code>&lt;faiss-copilot&gt;</code> custom element, rendered in a shadow root.</p>
+      <button type="button">A host button</button>
+      <div class="controls">
+        <label>Persona
+          <select id="persona">
+            <option value="naledi.director">Naledi Mokoena, Group M&amp;A Director</option>
+            <option value="wanjiru.kenya">Wanjiru Kamau, Kenya Regional Lead</option>
+            <option value="thabo.tech">Thabo Nkosi, Technology Lead</option>
+          </select>
+        </label>
+        <label>Deal id (optional) <input id="deal" size="34" placeholder="scope to one deal" /></label>
+        <span id="log"></span>
+      </div>
+
+      <!-- Development mode: a persona via dev-user. In production leave dev-user out and set el.getToken. -->
+      <faiss-copilot id="copilot" api-base="http://localhost:8000" dev-user="naledi.director"></faiss-copilot>
+    </main>
+
+    <script src="./faiss-copilot.js"></script>
+    <script>
+      const copilot = document.getElementById("copilot");
+      // ?api=<origin> points the element at another API; ?api=same-origin uses this page's own /api relay.
+      const api = new URLSearchParams(location.search).get("api");
+      if (api) copilot.setAttribute("api-base", api === "same-origin" ? location.origin : api);
+
+      // With a real identity provider the host supplies the token instead of dev-user:
+      //   copilot.getToken = async () => (await portalAuth.getAccessToken());
+
+      document.getElementById("persona").addEventListener("change", (e) => copilot.setAttribute("dev-user", e.target.value));
+      document.getElementById("deal").addEventListener("change", (e) => {
+        if (e.target.value.trim()) copilot.setAttribute("deal-id", e.target.value.trim());
+        else copilot.removeAttribute("deal-id");
+      });
+      copilot.addEventListener("faiss-conversation", (e) => {
+        document.getElementById("log").textContent = "conversation " + e.detail.conversationId;
+      });
+    </script>
+  </body>
+</html>

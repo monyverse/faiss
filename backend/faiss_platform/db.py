@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.types import TypeDecorator
 
 from .config import get_settings
 
@@ -21,6 +22,17 @@ def now() -> datetime:
 
 def new_id() -> str:
     return uuid.uuid4().hex
+
+
+class UTCDateTime(TypeDecorator):
+    """Timestamps are stored and returned in UTC with the zone attached. SQLite drops the zone
+    on the way in; this puts it back, so every API timestamp carries its offset."""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_result_value(self, value: datetime | None, dialect: Any) -> datetime | None:
+        return value.replace(tzinfo=UTC) if value is not None and value.tzinfo is None else value
 
 
 class Base(DeclarativeBase):
@@ -43,8 +55,8 @@ class Deal(Base):
     # Structured facts about the target: financial inputs, valuation assumptions, key dates.
     twin: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_by: Mapped[str] = mapped_column(String(120))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now, onupdate=now)
 
 
 class DealMember(Base):
@@ -72,7 +84,7 @@ class Document(Base):
     status: Mapped[str] = mapped_column(String(30), default="processed")
     extracted: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     uploaded_by: Mapped[str] = mapped_column(String(120))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class DocumentChunk(Base):
@@ -104,7 +116,7 @@ class Finding(Base):
     produced_by: Mapped[str] = mapped_column(String(60), default="")
     reviewed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     review_note: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class Goal(Base):
@@ -133,9 +145,9 @@ class Goal(Base):
     # How the creator held access when the goal was created: {"via": "member" | "director"}.
     run_as: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     lease_owner: Mapped[str] = mapped_column(String(80), default="")
-    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    lease_until: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now, onupdate=now)
 
 
 class GoalEvent(Base):
@@ -146,7 +158,7 @@ class GoalEvent(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     goal_id: Mapped[str] = mapped_column(ForeignKey("goals.id", ondelete="CASCADE"), index=True)
     seq: Mapped[int] = mapped_column(Integer)
-    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     type: Mapped[str] = mapped_column(String(40))
     actor: Mapped[str] = mapped_column(String(80), default="system")
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
@@ -164,8 +176,8 @@ class Approval(Base):
     requested_by: Mapped[str] = mapped_column(String(80))
     decided_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     decision_note: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
 
 class Notification(Base):
@@ -178,7 +190,7 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(300))
     body: Mapped[str] = mapped_column(Text, default="")
     read: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class AuditEvent(Base):
@@ -186,7 +198,7 @@ class AuditEvent(Base):
 
     __tablename__ = "audit_events"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     # The timestamp exactly as it was hashed (databases differ in how they round-trip datetimes).
     stamp: Mapped[str] = mapped_column(String(40), default="")
     actor: Mapped[str] = mapped_column(String(120))
@@ -206,8 +218,8 @@ class Conversation(Base):
     user_id: Mapped[str] = mapped_column(String(120), index=True)
     deal_id: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(200), default="New conversation")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now, onupdate=now)
 
 
 class Message(Base):
@@ -217,7 +229,7 @@ class Message(Base):
     role: Mapped[str] = mapped_column(String(12))
     content: Mapped[str] = mapped_column(Text)
     citations: Mapped[list[Any]] = mapped_column(JSON, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class CentralisationAssessment(Base):
@@ -231,7 +243,7 @@ class CentralisationAssessment(Base):
     outcome: Mapped[str] = mapped_column(String(30))
     rationale: Mapped[str] = mapped_column(Text, default="")
     decided_by: Mapped[str] = mapped_column(String(120))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 Index("ix_goal_events_goal_seq", GoalEvent.goal_id, GoalEvent.seq)

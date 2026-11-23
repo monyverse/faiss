@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Styles for the <faiss-copilot> element. This sheet is injected into the element's shadow root,
+   so nothing here reaches the host page and the host's styles do not reach in. */
+:host {
+  display: block;
+  height: 560px;
+  color-scheme: dark;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-align: left;
+}
+.faiss-copilot-root {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-canvas);
+}
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+textarea {
+  font: inherit;
+  font-size: 16px;
+}
+@keyframes faiss-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

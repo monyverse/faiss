@@ -76,7 +76,7 @@ class Action:
 class Question:
     kind: str
     text: str
-    fields: list[dict[str, str]]
+    fields: list[dict[str, Any]]
     blocked_on: str
 
 
@@ -414,7 +414,7 @@ def _baseline_financial(i: TaskInput) -> TaskOutput:
                     "key": "offer_price",
                     "label": "Offer price for 100% of equity (optional)",
                     "type": "number",
-                    "optional": "true",
+                    "optional": True,
                 },
             ],
             "assumptions",

@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-canvas);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100dvh;
+    background:
+      radial-gradient(1100px 520px at 85% -10%, oklch(0.352 0.132 17.5 / 0.2), transparent 60%),
+      var(--color-canvas);
+    background-attachment: fixed;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: oklch(0.52 0.19 21 / 0.55);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+  button,
+  [role="button"],
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 16px inputs stop iOS zooming the page on focus. */
+  input,
+  textarea,
+  select {
+    font-size: 1rem;
+  }
+  @media (min-width: 48rem) {
+    input,
+    textarea,
+    select {
+      font-size: 0.9375rem;
+    }
+  }
+}
+
+@keyframes faiss-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes faiss-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes faiss-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

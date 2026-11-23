@@ -252,22 +252,22 @@ async def _apply_work(g: dict[str, Any], results: list[TaskResult]) -> str:
             task["runs"] = task.get("runs", 0) + 1
             await log.add("task_started", agent_name, task_id=task["id"], title=task["title"])
 
-            # Replace this task's earlier drafts; anything a person already reviewed is kept.
-            await session.execute(
-                delete(Finding).where(
-                    Finding.goal_id == goal.id, Finding.task_id == task["id"], Finding.status == "draft"
-                )
-            )
-            reviewed = {
-                row[0]
-                for row in await session.execute(
-                    select(Finding.title).where(Finding.goal_id == goal.id, Finding.task_id == task["id"])
-                )
-            }
+            # The deal keeps one current assessment per task. Earlier drafts are replaced, including
+            # those left by an earlier goal on the same deal, so re-running a goal never duplicates
+            # the register; anything a person already reviewed is kept. Research tasks answer a
+            # goal's own question, so only this goal's drafts are replaced for those.
+            stale = [Finding.deal_id == goal.deal_id, Finding.task_id == task["id"], Finding.status == "draft"]
+            kept = [Finding.deal_id == goal.deal_id, Finding.task_id == task["id"]]
+            if task["id"] == "research":
+                stale.append(Finding.goal_id == goal.id)
+                kept.append(Finding.goal_id == goal.id)
+            await session.execute(delete(Finding).where(*stale))
+            reviewed = {row[0] for row in await session.execute(select(Finding.title).where(*kept))}
             recorded = []
             awaiting = False
             for effect in result.effects:
                 if effect["type"] == "finding":
+                    task["evidenced"] = True  # every recorded item passed the evidence guard
                     if effect["title"] in reviewed:
                         continue
                     session.add(
@@ -433,10 +433,8 @@ async def _settle(session: AsyncSession, log: EventLog, goal: Goal) -> None:
         return
     if statuses <= SETTLED:
         await session.flush()
-        rows = await session.execute(select(Finding.task_id, Finding.evidence).where(Finding.goal_id == goal.id))
-        evidenced = {task_id for task_id, evidence in rows if evidence}
-        # A task that ended in an approved action has delivered, even if it recorded no finding itself.
-        evidenced |= {t["id"] for t in tasks if t.get("approved")}
+        # A task has delivered when it left evidence-linked work, or ended in an approved action.
+        evidenced = {t["id"] for t in tasks if t.get("evidenced") or t.get("approved")}
         completion = check_requirements(goal.requirements or [], tasks, evidenced)
         goal.completion = completion
         goal.requirements = [
@@ -614,6 +612,7 @@ def _reopen(tasks: list[dict[str, Any]], task_id: str) -> None:
             if task["status"] != "awaiting_approval":
                 task["status"], task["blocked_on"] = "pending", ""
                 task.pop("approved", None)
+                task.pop("evidenced", None)
 
 
 async def answer(
@@ -644,7 +643,7 @@ async def answer(
         unknown = set(values) - allowed
         if unknown:
             raise GoalError(f"Unexpected field(s): {', '.join(sorted(unknown))}.", 422)
-        required = [f["key"] for f in ask["fields"] if not f.get("optional")]
+        required = [f["key"] for f in ask["fields"] if f.get("optional") is not True]
         if ask["kind"] == "valuation_assumptions" and any(k not in values for k in required):
             raise GoalError("Cost of equity and long-term growth are both needed.", 422)
         if ask["kind"] in {"valuation_assumptions", "financial_inputs"} and not values:

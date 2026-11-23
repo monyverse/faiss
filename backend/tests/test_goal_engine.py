@@ -197,3 +197,41 @@ async def test_rejected_approval_leaves_requirement_unmet(samples):
     assert [c["id"] for c in unmet] == ["R7"]
     async with session_scope() as session:
         assert (await session.get(Deal, deal_id)).twin["briefing"]["status"] == "draft"
+
+
+async def test_rerunning_a_goal_replaces_the_register_instead_of_duplicating_it(samples):
+    deal_id = await make_deal()
+    for path in sorted(samples.iterdir()):
+        await upload(deal_id, path)
+
+    async def run_to_approval() -> str:
+        goal_id = await start_goal(deal_id)
+        await drain()
+        goal = await load(goal_id)
+        if goal.state == "awaiting_input":
+            async with session_scope() as session:
+                await engine.answer(
+                    session,
+                    goal_id,
+                    DIRECTOR,
+                    goal.pending["asks"][0]["id"],
+                    values={"cost_of_equity": 20, "long_term_growth": 6},
+                )
+            await drain()
+        return goal_id
+
+    first = await run_to_approval()
+    async with session_scope() as session:
+        before = (await session.execute(select(Finding).where(Finding.deal_id == deal_id))).scalars().all()
+        keep = next(f for f in before if f.kind == "risk")
+        keep.status, keep.reviewed_by = "validated", DIRECTOR.sub
+        kept_id, count = keep.id, len(before)
+    second = await run_to_approval()
+    async with session_scope() as session:
+        after = (await session.execute(select(Finding).where(Finding.deal_id == deal_id))).scalars().all()
+        assert len(after) == count, "a second run must not grow the register"
+        assert len({(f.kind, f.title) for f in after}) == len(after)
+        assert any(f.id == kept_id and f.status == "validated" for f in after), "a person's review survives"
+        assert {f.goal_id for f in after} == {first, second}  # the reviewed item stays with the goal that produced it
+    assert (await load(second)).state == "awaiting_approval"
+    assert first != second

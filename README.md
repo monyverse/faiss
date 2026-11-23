@@ -104,6 +104,7 @@ Checks:
 
 ```sh
 cd backend && uv run pytest && uv run ruff check faiss_platform tests
+cd frontend && bun run typecheck && bun run build
 cd backend && uv run python scripts/smoke.py        # against a running API
 cd knowledge && bun run build                       # corpus coverage gate
 ```
@@ -112,6 +113,27 @@ cd knowledge && bun run build                       # corpus coverage gate
 
 `deploy/README.md` is the operator runbook: Terraform for the AWS foundation, then Argo CD syncs the Helm chart (migrate → workloads → corpus ingest). Clusters always run with `FAISS_AUTH_MODE=oidc`; the API refuses to start otherwise.
 
-## Status
+## What has and has not been verified
 
-Built and tested locally. Not yet deployed anywhere, and not yet exercised against Absa's real gateway, identity provider or OpenSearch engine — see "What has and has not been verified" below.
+Verified on a developer machine:
+
+- **Knowledge:** the coverage gate passes — all 17,520 strings exported by the hub's content modules are in the corpus verbatim.
+- **Backend:** 32 automated tests pass, covering a diligence goal from plan to verified completion, waiting for and resuming on answers, approvals and new documents, deal and workstream isolation, OIDC token checks, the policy engine, the financial engine, retrieval and ingest. The Temporal workflow runs against Temporal's time-skipping test server. A smoke script passes against the running API.
+- **Frontend:** typecheck and both builds pass; the production server's health, runtime config, API proxy and unbuffered streaming were checked; the main flow (hand over a goal, answer its question, approve, finish verified; open evidence; ask the assistant; switch persona) was driven in a headless browser at desktop width and at 390 px. Screens are in `frontend/docs/screens/`.
+- **Deployment:** `terraform validate` passes for both stacks; `helm lint` and Kubernetes schema validation pass for dev, staging and prod.
+
+Not verified — treat as untested until someone runs it:
+
+- Nothing has been planned, applied or deployed to AWS or any cluster. Neither Docker image has been built.
+- Absa's LiteLLM gateway, identity provider and OpenSearch RAG engine: the gateway and OpenSearch paths are tested against stand-ins only, and browser sign-in (OIDC with PKCE) has never met a real identity provider.
+- Several screens compile but were never driven in a browser: new deal, document upload, workbook download, finding review, pause/resume/cancel, team, centralisation, briefing, knowledge search, Africa, audit, approvals page, goals control room, notifications.
+- No accessibility audit, load test or penetration test.
+
+## Known gaps
+
+- **RAG engine contract.** The backend indexes into and queries OpenSearch directly. If the bank's engine exposes its own API, it needs a small adapter behind the `Retriever` interface in `backend/faiss_platform/retrieval.py`.
+- **Audit archive.** Terraform provisions a write-once audit bucket, but nothing writes to it yet; the database table is the only copy.
+- **Approvals are not four-eyes.** A deal lead can approve a request raised by their own goal.
+- **Scanned documents** are stored but not searchable (no OCR). Figure extraction is pattern-based and marks everything it finds unverified.
+- **Plan sections 1–11** were not available when this was built; the design follows sections 12–20.
+- **Later phases** of the plan (target discovery, comparable-company analysis, portfolio intelligence, an MCP server over the tool contracts) are not built.
