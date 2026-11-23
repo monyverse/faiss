@@ -54,9 +54,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      # The build ends with the coverage gate (extractor/verify.ts).
-      - name: Build corpus and enforce the coverage gate
-        run: bun run build
+      # Rebuilds the corpus from the pinned snapshot in knowledge/source (the hub repository is
+      # not needed), then runs the coverage gate (extractor/verify.ts).
+      - name: Rebuild corpus and enforce the coverage gate
+        run: bun run check
+      # The committed corpus must be exactly what the extractor produces from the snapshot.
+      - name: Committed corpus is up to date
+        run: git diff --exit-code -- corpus
 
   helm:
     runs-on: ubuntu-latest

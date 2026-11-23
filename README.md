@@ -106,7 +106,7 @@ Checks:
 cd backend && uv run pytest && uv run ruff check faiss_platform tests
 cd frontend && bun run typecheck && bun run build
 cd backend && uv run python scripts/smoke.py        # against a running API
-cd knowledge && bun run build                       # corpus coverage gate
+cd knowledge && bun run check                       # rebuild the corpus from the pinned snapshot + coverage gate
 ```
 
 ## Deploying
