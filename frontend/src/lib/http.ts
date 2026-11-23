@@ -74,6 +74,11 @@ function describe(status: number, payload: unknown): string {
 }
 
 export function buildUrl(baseUrl: string, path: string, query?: RequestOptions["query"]): string {
+  // A path is fixed text plus encoded ids. Dot segments, doubled or back slashes, and query or
+  // fragment characters can only come from a malformed id, so the request is refused.
+  if (!path.startsWith("/api/") || /(^|\/)\.{1,2}(\/|$)|\/\/|\\|[?#]/.test(path)) {
+    throw new Error("Refused to call an invalid API path.");
+  }
   const url = `${baseUrl.replace(/\/+$/, "")}${path}`;
   if (!query) return url;
   const params = new URLSearchParams();

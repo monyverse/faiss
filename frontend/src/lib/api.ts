@@ -43,6 +43,9 @@ import type {
   UploadResult,
 } from "./types";
 
+/** Every value placed in a URL path is encoded, so an id can never add or change path segments. */
+const seg = (value: string): string => encodeURIComponent(value);
+
 export * from "./types";
 export { ApiError, errorMessage } from "./http";
 export type { Transport } from "./http";
@@ -70,64 +73,64 @@ export function createApi(transport: Transport) {
     meta: () => get<Meta>("/api/meta"),
     knowledgeSearch: (query: KnowledgeQuery, signal?: AbortSignal) =>
       get<KnowledgeSearch>("/api/knowledge/search", { ...query }, signal),
-    knowledgeChunk: (id: string) => get<KnowledgePassage>(`/api/knowledge/chunks/${encodeURIComponent(id)}`),
+    knowledgeChunk: (id: string) => get<KnowledgePassage>(`/api/knowledge/chunks/${seg(id)}`),
     knowledgeAreas: () => get<KnowledgeArea[]>("/api/knowledge/areas"),
     africaCountries: () => get<AfricaCountries>("/api/africa/countries"),
-    africaCountry: (iso: string) => get<CountryPack>(`/api/africa/countries/${encodeURIComponent(iso)}`),
+    africaCountry: (iso: string) => get<CountryPack>(`/api/africa/countries/${seg(iso)}`),
     audit: (query: { deal_id?: string; limit?: number } = {}) => get<AuditEvent[]>("/api/audit", query),
     auditVerify: () => get<AuditVerify>("/api/audit/verify"),
 
     // -- deals
     deals: () => get<Deal[]>("/api/deals"),
     createDeal: (body: DealIn) => call<Deal>("POST", "/api/deals", body),
-    deal: (id: string) => get<DealDetail>(`/api/deals/${id}`),
+    deal: (id: string) => get<DealDetail>(`/api/deals/${seg(id)}`),
     updateDeal: (id: string, body: Partial<Pick<Deal, "code_name" | "target_name" | "stage_id" | "description" | "status">> & { countries?: string[] }) =>
-      call<Deal>("PATCH", `/api/deals/${id}`, body),
-    members: (dealId: string) => get<Member[]>(`/api/deals/${dealId}/members`),
+      call<Deal>("PATCH", `/api/deals/${seg(id)}`, body),
+    members: (dealId: string) => get<Member[]>(`/api/deals/${seg(dealId)}/members`),
     setMember: (dealId: string, body: { user_id: string; role: MemberRole; workstreams: string[] }) =>
-      call<Member[]>("PUT", `/api/deals/${dealId}/members`, body),
+      call<Member[]>("PUT", `/api/deals/${seg(dealId)}/members`, body),
     removeMember: (dealId: string, userId: string) =>
-      call<Member[]>("DELETE", `/api/deals/${dealId}/members/${encodeURIComponent(userId)}`),
-    documents: (dealId: string) => get<DealDocument[]>(`/api/deals/${dealId}/documents`),
+      call<Member[]>("DELETE", `/api/deals/${seg(dealId)}/members/${seg(userId)}`),
+    documents: (dealId: string) => get<DealDocument[]>(`/api/deals/${seg(dealId)}/documents`),
     uploadDocument: (dealId: string, file: File) => {
       const form = new FormData();
       form.append("file", file, file.name);
-      return call<UploadResult>("POST", `/api/deals/${dealId}/documents`, form);
+      return call<UploadResult>("POST", `/api/deals/${seg(dealId)}/documents`, form);
     },
     findings: (dealId: string, query: { kind?: string; goal_id?: string } = {}) =>
-      get<Findings>(`/api/deals/${dealId}/findings`, query),
+      get<Findings>(`/api/deals/${seg(dealId)}/findings`, query),
     reviewFinding: (findingId: string, body: { decision: "validated" | "rejected"; note?: string }) =>
-      call<Finding>("POST", `/api/findings/${findingId}/review`, body),
-    financials: (dealId: string) => get<Financials>(`/api/deals/${dealId}/financials`),
-    setFinancials: (dealId: string, body: FinancialsIn) => call<Financials>("PUT", `/api/deals/${dealId}/financials`, body),
+      call<Finding>("POST", `/api/findings/${seg(findingId)}/review`, body),
+    financials: (dealId: string) => get<Financials>(`/api/deals/${seg(dealId)}/financials`),
+    setFinancials: (dealId: string, body: FinancialsIn) => call<Financials>("PUT", `/api/deals/${seg(dealId)}/financials`, body),
     /** The workbook needs the auth header, so it is fetched and handed back as a blob to save. */
     valuationWorkbook: async (dealId: string): Promise<{ blob: Blob; filename: string }> => {
-      const response = await send(transport, `/api/deals/${dealId}/valuation.xlsx`, { headers: { Accept: "*/*" } });
+      const response = await send(transport, `/api/deals/${seg(dealId)}/valuation.xlsx`, { headers: { Accept: "*/*" } });
       const disposition = response.headers.get("content-disposition") ?? "";
       const match = /filename="?([^";]+)"?/.exec(disposition);
       return { blob: await response.blob(), filename: match?.[1] ?? `valuation-${dealId.slice(0, 8)}.xlsx` };
     },
-    briefing: (dealId: string) => get<Briefing>(`/api/deals/${dealId}/briefing`),
-    centralisation: (dealId: string) => get<Centralisation>(`/api/deals/${dealId}/centralisation`),
+    briefing: (dealId: string) => get<Briefing>(`/api/deals/${seg(dealId)}/briefing`),
+    centralisation: (dealId: string) => get<Centralisation>(`/api/deals/${seg(dealId)}/centralisation`),
     recordCentralisation: (dealId: string, body: { workstream: string; answers: ("yes" | "no")[]; rationale: string }) =>
-      call<CentralisationAssessment>("POST", `/api/deals/${dealId}/centralisation`, body),
-    dealAudit: (dealId: string, limit = 50) => get<AuditEvent[]>(`/api/deals/${dealId}/audit`, { limit }),
+      call<CentralisationAssessment>("POST", `/api/deals/${seg(dealId)}/centralisation`, body),
+    dealAudit: (dealId: string, limit = 50) => get<AuditEvent[]>(`/api/deals/${seg(dealId)}/audit`, { limit }),
 
     // -- goals
     createGoal: (dealId: string, body: { objective: string; budget_usd?: number; max_cycles?: number }) =>
-      call<GoalDetail>("POST", `/api/deals/${dealId}/goals`, body),
-    dealGoals: (dealId: string) => get<GoalSummary[]>(`/api/deals/${dealId}/goals`),
+      call<GoalDetail>("POST", `/api/deals/${seg(dealId)}/goals`, body),
+    dealGoals: (dealId: string) => get<GoalSummary[]>(`/api/deals/${seg(dealId)}/goals`),
     goals: (state?: string) => get<GoalSummary[]>("/api/goals", { state }),
-    goal: (goalId: string) => get<GoalDetail>(`/api/goals/${goalId}`),
-    goalEvents: (goalId: string, after = 0) => get<GoalEvents>(`/api/goals/${goalId}/events`, { after }),
-    answerGoal: (goalId: string, body: AnswerIn) => call<GoalDetail>("POST", `/api/goals/${goalId}/answers`, body),
+    goal: (goalId: string) => get<GoalDetail>(`/api/goals/${seg(goalId)}`),
+    goalEvents: (goalId: string, after = 0) => get<GoalEvents>(`/api/goals/${seg(goalId)}/events`, { after }),
+    answerGoal: (goalId: string, body: AnswerIn) => call<GoalDetail>("POST", `/api/goals/${seg(goalId)}/answers`, body),
     controlGoal: (goalId: string, action: "pause" | "resume" | "cancel") =>
-      call<GoalDetail>("POST", `/api/goals/${goalId}/${action}`),
+      call<GoalDetail>("POST", `/api/goals/${seg(goalId)}/${seg(action)}`),
 
     // -- approvals and notifications
     approvals: (state: "pending" | "approved" | "rejected" | "all" = "pending") => get<Approval[]>("/api/approvals", { state }),
     decideApproval: (approvalId: string, body: { approve: boolean; note?: string }) =>
-      call<Approval>("POST", `/api/approvals/${approvalId}/decision`, body),
+      call<Approval>("POST", `/api/approvals/${seg(approvalId)}/decision`, body),
     notifications: () => get<Notifications>("/api/notifications"),
     markNotificationsRead: () => call<{ unread: number }>("POST", "/api/notifications/read"),
 
@@ -156,7 +159,7 @@ export function createApi(transport: Transport) {
       }
     },
     conversations: (dealId?: string | null) => get<ConversationSummary[]>("/api/conversations", { deal_id: dealId }),
-    conversation: (id: string) => get<Conversation>(`/api/conversations/${id}`),
+    conversation: (id: string) => get<Conversation>(`/api/conversations/${seg(id)}`),
   };
 }
 
