@@ -1,0 +1,18 @@
+# Copy to backend.hcl (git-ignored) and run:
+#   terraform init -backend-config=backend.hcl
+#
+# The state bucket must already exist: versioned, KMS-encrypted, private, and in
+# the same region as the stack so state stays in-country.
+
+bucket     = "REPLACE_ME-terraform-state"
+key        = "faiss/prod/terraform.tfstate"
+region     = "af-south-1"
+encrypt    = true
+kms_key_id = "arn:aws:kms:af-south-1:000000000000:key/REPLACE_ME"
+
+# State locking. S3-native lock files need Terraform >= 1.10.
+use_lockfile = true
+
+# On Terraform 1.9, or if your organisation standardises on DynamoDB locking,
+# use a lock table instead of use_lockfile:
+# dynamodb_table = "REPLACE_ME-terraform-locks"

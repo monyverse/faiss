@@ -1,0 +1,64 @@
+{{- if .Values.ingest.enabled }}
+{{- /*
+Pushes the knowledge corpus baked into the backend image into OpenSearch, after
+the workloads are healthy:
+  Argo CD  PostSync hook           Helm  post-install,post-upgrade hook
+Idempotent: the index is keyed by corpus version, so re-running is a no-op.
+It uses the regular ConfigMap, Secret and ServiceAccount, which exist by then.
+*/ -}}
+{{- $ctx := dict "root" . "component" "ingest" }}
+{{- $fullname := include "faiss.fullname" . }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullname }}-ingest
+  labels:
+    {{- include "faiss.componentLabels" $ctx | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.ingest.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.ingest.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "faiss.componentLabels" $ctx | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ $fullname }}-ingest
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- include "faiss.scheduling" $ctx | nindent 6 }}
+      containers:
+        - name: ingest
+          image: {{ include "faiss.image" (dict "root" . "repository" .Values.image.backendRepository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - python
+            - -m
+            - faiss_platform.knowledge.ingest
+          envFrom:
+            - configMapRef:
+                name: {{ $fullname }}-config
+            - secretRef:
+                name: {{ include "faiss.envSecretName" . }}
+          env:
+            {{- include "faiss.commonEnv" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.ingest.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        {{- include "faiss.tmpVolume" . | nindent 8 }}
+{{- end }}

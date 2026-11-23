@@ -1,0 +1,45 @@
+{{- range $component := list "api" "web" }}
+{{- $settings := index $.Values $component }}
+{{- $ctx := dict "root" $ "component" $component }}
+{{- if $settings.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "faiss.fullname" $ }}-{{ $component }}
+  labels:
+    {{- include "faiss.componentLabels" $ctx | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "faiss.fullname" $ }}-{{ $component }}
+  minReplicas: {{ $settings.autoscaling.minReplicas }}
+  maxReplicas: {{ $settings.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $settings.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- if $settings.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "faiss.fullname" $ }}-{{ $component }}
+  labels:
+    {{- include "faiss.componentLabels" $ctx | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  maxUnavailable: {{ $settings.pdb.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "faiss.selectorLabels" $ctx | nindent 6 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: faiss
+  namespace: argocd
+  annotations:
+    # Created before the Applications that reference it.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: FAISS M&A Intelligence Platform (non-production cluster)
+  # REPLACE_ME: the only repository this project may deploy from.
+  sourceRepos:
+    - https://github.com/REPLACE_ME/faiss.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: faiss-dev
+    - server: https://kubernetes.default.svc
+      namespace: faiss-staging
+  # Cluster-scoped: only the Namespace objects Argo CD creates for the
+  # destinations above (syncOptions CreateNamespace=true).
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  # Namespaced kinds the FAISS chart renders. Secret is deliberately absent:
+  # secrets come from External Secrets, never from git.
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: apps
+      kind: Deployment
+    - group: batch
+      kind: Job
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: external-secrets.io
+      kind: ExternalSecret
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor

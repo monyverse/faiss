@@ -1,0 +1,32 @@
+# Copy to terraform.tfvars (git-ignored). Every REPLACE_ME / 000000000000 value is
+# a placeholder. No secret values belong in this file.
+
+region              = "af-south-1"
+allowed_account_ids = ["000000000000"]
+
+# One cluster hosting both non-production environments.
+app_environments = {
+  dev     = {}
+  staging = { db_max_capacity = 4 }
+}
+
+vpc_cidr = "10.40.0.0/16"
+
+# Networks (VPN / CI runners) that may reach the private Kubernetes API.
+cluster_endpoint_private_access_cidrs = ["10.0.0.0/8"]
+
+# Existing OpenSearch RAG engine, owned by the search team.
+opensearch_endpoint = "https://REPLACE_ME.af-south-1.es.amazonaws.com"
+opensearch_arn      = "arn:aws:es:af-south-1:000000000000:domain/REPLACE_ME"
+opensearch_service  = "es"
+opensearch_auth     = "sigv4"
+
+# Images are built once here and promoted; let the production account pull them.
+create_ecr_repositories  = true
+ecr_pull_account_ids     = ["000000000000"]
+github_repository        = "REPLACE_ME/faiss"
+github_oidc_provider_arn = "arn:aws:iam::000000000000:oidc-provider/token.actions.githubusercontent.com"
+
+gitops_repo_url  = "https://github.com/REPLACE_ME/faiss.git"
+gitops_apps_path = "deploy/argocd/clusters/nonprod"
+argocd_hostname  = "argocd.nonprod.REPLACE_ME.example"

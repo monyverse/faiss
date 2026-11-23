@@ -1,8 +1,11 @@
 """Tamper-evident audit trail.
 
 Every row stores the hash of the previous row, so a deleted or edited entry breaks the chain
-and `verify_chain` reports where. In AWS the same events are also meant to be shipped to the
-write-once audit archive bucket; this table is the queryable copy.
+and `verify_chain` reports where.
+
+Not yet built: copying these rows to the write-once audit archive bucket that the Terraform
+stack provisions. Until that exists, this table is the only copy, and its integrity rests on
+the hash chain and on database permissions.
 """
 
 from __future__ import annotations

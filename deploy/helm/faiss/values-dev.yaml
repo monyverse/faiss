@@ -1,0 +1,100 @@
+# FAISS dev environment: namespace faiss-dev on the non-production cluster.
+#
+# Every REPLACE_ME / 000000000000 value is a placeholder. Most real values come
+# from `terraform output helm_values` in deploy/terraform/envs/dev.
+# Nothing in this file is a secret.
+
+env: dev
+
+image:
+  registry: 000000000000.dkr.ecr.af-south-1.amazonaws.com # REPLACE_ME
+  # Bumped only by pull requests from .github/workflows/release.yml.
+  tag: "0.0.0" # managed-by: release.yml
+
+publicHost: faiss.dev.REPLACE_ME.example
+
+config:
+  litellm:
+    baseUrl: https://litellm.REPLACE_ME.example
+  opensearch:
+    url: https://REPLACE_ME.af-south-1.es.amazonaws.com
+    # Index prefix; the backend appends "-<corpus version>".
+    index: faiss-knowledge-dev
+    auth: sigv4
+    service: es
+  oidc:
+    issuer: https://login.microsoftonline.com/REPLACE_ME_TENANT_ID/v2.0
+    audience: api://REPLACE_ME_APP_ID
+    jwksUrl: https://login.microsoftonline.com/REPLACE_ME_TENANT_ID/discovery/v2.0/keys
+  documentsBucket: faiss-dev-documents-000000000000
+
+database:
+  host: REPLACE_ME.cluster-REPLACE_ME.af-south-1.rds.amazonaws.com
+
+externalSecrets:
+  litellm:
+    remoteKey: faiss/dev/litellm
+  # Application role (no DDL). Value set out of band; see deploy/README.md.
+  database:
+    remoteKey: faiss/dev/database
+  # RDS-managed master secret, used by the migrate Job only.
+  migrateDatabase:
+    remoteKey: arn:aws:secretsmanager:af-south-1:000000000000:secret:rds!cluster-REPLACE_ME
+
+ingress:
+  certificateArn: arn:aws:acm:af-south-1:000000000000:certificate/REPLACE_ME
+  inboundCidrs:
+    - 10.0.0.0/8 # REPLACE_ME: client networks allowed to reach the ALB
+
+networkPolicy:
+  # VPC CIDR of the non-production stack: the ALB reaches pods from its private subnets.
+  ingressCidrs:
+    - 10.40.0.0/16
+  egress:
+    # Database subnets of the non-production stack.
+    database:
+      cidrs:
+        - 10.40.100.0/24
+        - 10.40.101.0/24
+        - 10.40.102.0/24
+    # Interface VPC endpoints (S3, STS, ...) live in the VPC.
+    awsEndpoints:
+      cidrs:
+        - 10.40.0.0/16
+    opensearch:
+      cidrs:
+        - 10.0.0.0/8 # REPLACE_ME: network of the OpenSearch RAG engine
+    litellm:
+      cidrs:
+        - 10.0.0.0/8 # REPLACE_ME: network of the LiteLLM gateway
+    # Entra ID publishes no stable IP ranges and NetworkPolicy cannot match
+    # hostnames, so this is "public HTTPS only". Narrow it to the egress proxy
+    # if the bank routes outbound traffic through one.
+    oidc:
+      cidrs:
+        - 0.0.0.0/0
+      except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 169.254.0.0/16
+
+api:
+  replicaCount: 1
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 3
+  pdb:
+    enabled: false
+
+web:
+  replicaCount: 1
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 2
+  pdb:
+    enabled: false
+  oidc:
+    # authority defaults to config.oidc.issuer.
+    clientId: REPLACE_ME_SPA_CLIENT_ID
+    scope: openid profile api://REPLACE_ME_APP_ID/REPLACE_ME_SCOPE

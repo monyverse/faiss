@@ -1,0 +1,98 @@
+{{- $ctx := dict "root" . "component" "web" "spread" true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "faiss.fullname" . }}-web
+  labels:
+    {{- include "faiss.componentLabels" $ctx | nindent 4 }}
+spec:
+  {{- if not .Values.web.autoscaling.enabled }}
+  replicas: {{ .Values.web.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "faiss.selectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "faiss.componentLabels" $ctx | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.web.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "faiss.fullname" . }}-web
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.web.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- include "faiss.scheduling" $ctx | nindent 6 }}
+      containers:
+        - name: web
+          image: {{ include "faiss.image" (dict "root" . "repository" .Values.image.webRepository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - node
+            - .output/server/index.mjs
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            {{- include "faiss.commonEnv" . | nindent 12 }}
+            - name: PORT
+              value: "3000"
+            # Listen on all interfaces so probes and the load balancer can connect.
+            - name: HOST
+              value: 0.0.0.0
+            - name: FAISS_API_INTERNAL_URL
+              value: http://{{ include "faiss.fullname" . }}-api:8000
+            - name: FAISS_AUTH_MODE
+              value: {{ .Values.config.authMode | quote }}
+            - name: FAISS_OIDC_AUTHORITY
+              value: {{ required "web.oidc.authority or config.oidc.issuer is required" (default .Values.config.oidc.issuer .Values.web.oidc.authority) | quote }}
+            - name: FAISS_OIDC_CLIENT_ID
+              value: {{ required "web.oidc.clientId is required" .Values.web.oidc.clientId | quote }}
+            - name: FAISS_OIDC_SCOPE
+              value: {{ required "web.oidc.scope is required" .Values.web.oidc.scope | quote }}
+            {{- with .Values.web.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        {{- include "faiss.tmpVolume" . | nindent 8 }}

@@ -1,0 +1,319 @@
+# Base values for the FAISS chart. Environment files (values-<env>.yaml) are
+# layered on top by Argo CD. Nothing in any values file is a secret: secret
+# material is pulled from AWS Secrets Manager by External Secrets Operator.
+
+nameOverride: ""
+# With release name "faiss" resources are named faiss-api, faiss-worker, ...
+fullnameOverride: ""
+
+# FAISS_ENV: dev | staging | prod
+env: dev
+
+image:
+  # ECR registry host, e.g. <account>.dkr.ecr.af-south-1.amazonaws.com. Required.
+  registry: ""
+  backendRepository: faiss/backend
+  webRepository: faiss/web
+  # Required, immutable tag written by the release workflow. "latest" is rejected.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# The single hostname of the platform. /api/* goes to the API, the rest to web.
+publicHost: ""
+
+aws:
+  region: af-south-1
+
+# Non-secret backend settings, rendered into a ConfigMap (FAISS_* variables).
+config:
+  # FAISS_PUBLIC_URL / FAISS_CORS_ORIGINS default to https://<publicHost>.
+  publicUrl: ""
+  corsOrigins: ""
+  # Absa LiteLLM gateway. All chat and embedding traffic goes through it.
+  litellm:
+    baseUrl: ""
+  # Gateway model aliases (the backend's own defaults; they must exist on the gateway).
+  models:
+    reasoning: faiss-reasoning
+    fast: faiss-fast
+    embedding: faiss-embedding
+  retriever: opensearch
+  # Existing OpenSearch RAG engine owned by the search team.
+  opensearch:
+    url: ""
+    # Index prefix: the backend appends "-<corpus version>".
+    index: faiss-knowledge
+    # sigv4 | basic | none
+    auth: sigv4
+    # es (managed domain) | aoss (Serverless collection)
+    service: es
+  # The backend refuses to start in Kubernetes with any mode other than oidc,
+  # in every environment including dev.
+  authMode: oidc
+  # Absa Entra ID. issuer, audience and jwksUrl are required.
+  oidc:
+    issuer: ""
+    audience: ""
+    jwksUrl: ""
+    # Token claims carrying roles and country entitlements.
+    rolesClaim: roles
+    countriesClaim: countries
+  # Optional. With an empty address the worker uses its database-backed scheduler
+  # and no FAISS_TEMPORAL_* variable is set.
+  temporal:
+    address: ""
+    namespace: ""
+    taskQueue: ""
+  documentsBucket: ""
+  # Optional OTLP endpoint (OTEL_EXPORTER_OTLP_ENDPOINT).
+  otlpEndpoint: ""
+  # Extra non-secret variables for the backend, as NAME: value.
+  extra: {}
+
+# Used to assemble FAISS_DATABASE_URL inside the cluster; credentials come from
+# Secrets Manager (see externalSecrets.database).
+database:
+  scheme: postgresql+asyncpg
+  # Aurora writer endpoint. Required.
+  host: ""
+  port: 5432
+  name: faiss
+  # Query string appended to the URL. asyncpg spells TLS "ssl=require".
+  urlParams: ssl=require
+
+externalSecrets:
+  # false: no ExternalSecret is rendered and existingSecret /
+  # migrateExistingSecret must already hold the secret variables.
+  enabled: true
+  existingSecret: ""
+  migrateExistingSecret: ""
+  secretStore:
+    kind: ClusterSecretStore
+    name: aws-secrets-manager
+  refreshInterval: 1h
+  # LiteLLM gateway key -> FAISS_LITELLM_API_KEY
+  litellm:
+    remoteKey: ""
+    property: api_key
+  # Application database role -> FAISS_DATABASE_URL
+  database:
+    remoteKey: ""
+    usernameProperty: username
+    passwordProperty: password
+  # Role used by the migrate Job (schema owner). Defaults to database.remoteKey.
+  migrateDatabase:
+    remoteKey: ""
+    usernameProperty: username
+    passwordProperty: password
+  # Only read when config.opensearch.auth is "basic".
+  opensearch:
+    remoteKey: ""
+    usernameProperty: username
+    passwordProperty: password
+
+# Applied to every pod. The images must run as this non-root UID with a
+# read-only root filesystem; /tmp is an emptyDir.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+tmpVolume:
+  sizeLimit: 256Mi
+
+topologySpread:
+  enabled: true
+  # DoNotSchedule makes zone spreading a hard requirement.
+  zoneWhenUnsatisfiable: ScheduleAnyway
+
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+
+api:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  terminationGracePeriodSeconds: 30
+  podAnnotations: {}
+  extraEnv: []
+  serviceAccount:
+    # Pod Identity needs no annotation. For IRSA set
+    # eks.amazonaws.com/role-arn here instead.
+    annotations: {}
+
+worker:
+  # One replica, replaced (not rolled) on deploy: whether the database-backed
+  # scheduler tolerates concurrent workers is an application decision.
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  metricsPort: 9000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  terminationGracePeriodSeconds: 60
+  podAnnotations: {}
+  extraEnv: []
+  serviceAccount:
+    annotations: {}
+
+web:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  terminationGracePeriodSeconds: 30
+  podAnnotations: {}
+  extraEnv: []
+  serviceAccount:
+    annotations: {}
+  # Read by the web server at runtime and passed to the browser for sign-in.
+  # Public client settings, not secrets.
+  oidc:
+    # FAISS_OIDC_AUTHORITY. Defaults to config.oidc.issuer.
+    authority: ""
+    # FAISS_OIDC_CLIENT_ID. Required.
+    clientId: ""
+    # FAISS_OIDC_SCOPE. Required.
+    scope: ""
+
+# Schema migrations: Argo CD PreSync hook / Helm pre-install,pre-upgrade hook.
+migrate:
+  enabled: true
+  backoffLimit: 2
+  activeDeadlineSeconds: 900
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  serviceAccount:
+    annotations: {}
+
+# Knowledge-corpus ingest into OpenSearch: Argo CD PostSync hook / Helm
+# post-install,post-upgrade hook. Idempotent per corpus version.
+ingest:
+  enabled: true
+  backoffLimit: 2
+  activeDeadlineSeconds: 3600
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  serviceAccount:
+    annotations: {}
+
+ingress:
+  enabled: true
+  className: alb
+  # internal: this is an internal bank tool. internet-facing is a deliberate change.
+  scheme: internal
+  # ACM certificate for publicHost. Required when the ingress is enabled.
+  certificateArn: ""
+  sslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+  # Client networks allowed by the ALB security group. Required.
+  inboundCidrs: []
+  loadBalancerAttributes:
+    - routing.http.drop_invalid_header_fields.enabled=true
+    - deletion_protection.enabled=false
+  annotations: {}
+
+# Default-deny NetworkPolicies with explicit allows. Enforced by the VPC CNI
+# (enableNetworkPolicy), which Terraform switches on.
+#
+# NetworkPolicy matches IP blocks, not hostnames, so every external dependency is
+# a CIDR list. An empty list renders no rule, i.e. that destination is blocked.
+networkPolicy:
+  enabled: true
+  # Sources of ALB traffic (target-type ip): the VPC's private subnets.
+  ingressCidrs: []
+  # Namespace Prometheus scrapes from (only used when serviceMonitor.enabled).
+  monitoringNamespace: monitoring
+  # Allow backend pods to reach the EKS Pod Identity agent (169.254.170.23:80).
+  podIdentityAgent: true
+  egress:
+    database:
+      cidrs: []
+      except: []
+      ports: [5432]
+    opensearch:
+      cidrs: []
+      except: []
+      ports: [443]
+    litellm:
+      cidrs: []
+      except: []
+      ports: [443]
+    temporal:
+      cidrs: []
+      except: []
+      ports: [7233]
+    oidc:
+      cidrs: []
+      except: []
+      ports: [443]
+    # Interface VPC endpoints (S3, STS, ...): normally the VPC CIDR.
+    awsEndpoints:
+      cidrs: []
+      except: []
+      ports: [443]
+    otel:
+      cidrs: []
+      except: []
+      ports: [4317]
+  # Extra raw egress rules appended to the api, worker and ingest policies, for
+  # in-cluster dependencies that are better matched by pod/namespace selectors.
+  extraBackendEgress: []
+
+# Requires the Prometheus Operator CRDs.
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  labels: {}

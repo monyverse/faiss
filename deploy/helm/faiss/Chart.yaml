@@ -1,0 +1,8 @@
+apiVersion: v2
+name: faiss
+description: FAISS M&A Intelligence Platform - API, worker, web, migration and knowledge-ingest jobs.
+type: application
+version: 0.1.0
+# Informational only. The deployed version is image.tag in the values files.
+appVersion: "0.1.0"
+kubeVersion: ">=1.29.0-0"

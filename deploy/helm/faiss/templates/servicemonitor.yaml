@@ -1,0 +1,42 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- $fullname := include "faiss.fullname" . }}
+# The worker has no Service of its own; this headless one only exposes metrics.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-worker-metrics
+  labels:
+    {{- include "faiss.componentLabels" (dict "root" . "component" "worker") | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    {{- include "faiss.selectorLabels" (dict "root" . "component" "worker") | nindent 4 }}
+  ports:
+    - name: metrics
+      port: {{ .Values.worker.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+{{- range $component, $port := dict "api" "http" "worker" "metrics" }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $fullname }}-{{ $component }}
+  labels:
+    {{- include "faiss.componentLabels" (dict "root" $ "component" $component) | nindent 4 }}
+    {{- with $.Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  selector:
+    matchLabels:
+      {{- include "faiss.selectorLabels" (dict "root" $ "component" $component) | nindent 6 }}
+  endpoints:
+    - port: {{ $port }}
+      path: /metrics
+      interval: {{ $.Values.serviceMonitor.interval }}
+{{- end }}
+{{- end }}

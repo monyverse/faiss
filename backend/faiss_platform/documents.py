@@ -250,9 +250,9 @@ async def store_bytes(settings: Settings, deal_id: str, document_id: str, filena
         import boto3  # available in the AWS image (the 'aws' extra)
 
         client = boto3.client("s3", region_name=settings.aws_region)
-        await asyncio.to_thread(
-            client.put_object, Bucket=settings.documents_bucket, Key=key, Body=data, ServerSideEncryption="aws:kms"
-        )
+        # No encryption header: the bucket's default applies its customer-managed KMS key. Naming
+        # "aws:kms" without a key id would select the AWS-managed key, which the bucket policy refuses.
+        await asyncio.to_thread(client.put_object, Bucket=settings.documents_bucket, Key=key, Body=data)
         return f"s3://{settings.documents_bucket}/{key}"
     path = settings.documents_dir / key
     path.parent.mkdir(parents=True, exist_ok=True)

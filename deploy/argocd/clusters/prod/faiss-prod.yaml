@@ -1,0 +1,44 @@
+# prod: NO automated sync. A merged change shows as OutOfSync until an operator
+# syncs it (argocd app sync faiss-prod, or the UI). There is no resources
+# finalizer, so deleting this Application does not delete the workloads.
+# Ordering inside one sync is set by the chart, not here:
+#   PreSync   faiss-migrate (its own ServiceAccount + ExternalSecret, then the Job)
+#   Sync      wave -1 config -> wave 0 workloads -> wave 1 ingress/HPA/PDB
+#   PostSync  faiss-ingest
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: faiss-prod
+  namespace: argocd
+spec:
+  project: faiss
+  source:
+    # REPLACE_ME: the GitOps repository.
+    repoURL: https://github.com/REPLACE_ME/faiss.git
+    targetRevision: main
+    path: deploy/helm/faiss
+    helm:
+      releaseName: faiss
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: faiss-prod
+  revisionHistoryLimit: 20
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    # Pod Security Admission: the chart's pods meet the "restricted" profile.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/warn: restricted
+    retry:
+      limit: 3
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 3m

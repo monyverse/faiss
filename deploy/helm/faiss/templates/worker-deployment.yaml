@@ -1,0 +1,67 @@
+{{- $ctx := dict "root" . "component" "worker" "spread" true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "faiss.fullname" . }}-worker
+  labels:
+    {{- include "faiss.componentLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  revisionHistoryLimit: 5
+  strategy:
+    {{- toYaml .Values.worker.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "faiss.selectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "faiss.componentLabels" $ctx | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include "faiss.config" . | sha256sum }}
+        {{- with .Values.worker.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "faiss.fullname" . }}-worker
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- include "faiss.scheduling" $ctx | nindent 6 }}
+      containers:
+        # No probes by contract: the worker serves no HTTP health endpoint and is
+        # restarted when its process exits.
+        - name: worker
+          image: {{ include "faiss.image" (dict "root" . "repository" .Values.image.backendRepository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - python
+            - -m
+            - faiss_platform.worker
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.worker.metricsPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "faiss.fullname" . }}-config
+            - secretRef:
+                name: {{ include "faiss.envSecretName" . }}
+          env:
+            {{- include "faiss.commonEnv" . | nindent 12 }}
+            {{- with .Values.worker.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        {{- include "faiss.tmpVolume" . | nindent 8 }}

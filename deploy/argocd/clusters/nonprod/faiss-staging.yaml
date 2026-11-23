@@ -1,0 +1,49 @@
+# staging: synced automatically when values-staging.yaml changes on main.
+# Ordering inside one sync is set by the chart, not here:
+#   PreSync   faiss-migrate (its own ServiceAccount + ExternalSecret, then the Job)
+#   Sync      wave -1 config -> wave 0 workloads -> wave 1 ingress/HPA/PDB
+#   PostSync  faiss-ingest
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: faiss-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: faiss
+  source:
+    # REPLACE_ME: the GitOps repository.
+    repoURL: https://github.com/REPLACE_ME/faiss.git
+    targetRevision: main
+    path: deploy/helm/faiss
+    helm:
+      releaseName: faiss
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: faiss-staging
+  revisionHistoryLimit: 20
+  syncPolicy:
+    # Auto-sync on merge. Manual changes are not reverted automatically, so a
+    # hot-fix under investigation is not overwritten mid-test.
+    automated:
+      prune: true
+      selfHeal: false
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    # Pod Security Admission: the chart's pods meet the "restricted" profile.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/warn: restricted
+    retry:
+      limit: 3
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 3m

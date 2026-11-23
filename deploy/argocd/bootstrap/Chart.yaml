@@ -1,0 +1,5 @@
+apiVersion: v2
+name: faiss-bootstrap
+description: Cluster bootstrap for FAISS - ClusterSecretStore, Argo CD repository credentials and the app-of-apps root Application.
+type: application
+version: 0.1.0

@@ -1,0 +1,37 @@
+# Installed once per cluster by Terraform (deploy/terraform/modules/platform),
+# after Argo CD and External Secrets Operator. Can also be installed by hand:
+#   helm upgrade --install faiss-bootstrap deploy/argocd/bootstrap -n argocd -f <values>
+
+# REPLACE_ME: the GitOps repository. Must match repoURL in deploy/argocd/clusters/*.
+repoURL: https://github.com/REPLACE_ME/faiss.git
+targetRevision: main
+
+# Directory holding this cluster's AppProject and Applications.
+appsPath: deploy/argocd/clusters/nonprod
+
+rootApplication:
+  name: faiss-root
+  project: default
+  # The root only manages AppProject/Application objects, so it syncs
+  # automatically even on the production cluster; faiss-prod itself is manual.
+  automated: true
+
+clusterSecretStore:
+  enabled: true
+  name: aws-secrets-manager
+  region: af-south-1
+  # Only these namespaces may reference the store. External Secrets authenticates
+  # with its own EKS Pod Identity role.
+  namespaces:
+    - argocd
+    - faiss-dev
+    - faiss-staging
+
+repoCredentials:
+  # Sync Argo CD repository credentials from Secrets Manager. The secret is a JSON
+  # object whose keys are Argo CD repository-secret fields, for example
+  # {"username": "...", "password": "..."} or
+  # {"githubAppID": "...", "githubAppInstallationID": "...", "githubAppPrivateKey": "..."}.
+  enabled: false
+  remoteKey: ""
+  refreshInterval: 1h

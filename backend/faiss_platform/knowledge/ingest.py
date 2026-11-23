@@ -4,7 +4,9 @@
     python -m faiss_platform.knowledge.ingest --dry-run  # print what would be sent
 
 Idempotent: the index name carries the corpus version, document ids are chunk ids, and a
-finished index is detected by its document count. Embeddings come from the LiteLLM gateway;
+finished index is detected by its document count. On OpenSearch Serverless (FAISS_OPENSEARCH_SERVICE=aoss)
+ids are assigned by the service and no refresh is issued, so a run interrupted part-way should
+be restarted on a fresh index rather than resumed. Embeddings come from the LiteLLM gateway;
 without a gateway the index is lexical only.
 """
 
@@ -72,14 +74,17 @@ def embedding_text(chunk: Chunk) -> str:
     return f"{' › '.join(chunk.breadcrumb)}\n{chunk.text}"
 
 
-def bulk_lines(index: str, docs: list[dict[str, Any]]) -> Iterator[str]:
+def bulk_lines(index: str, docs: list[dict[str, Any]], *, with_ids: bool = True) -> Iterator[str]:
+    """Document ids are the chunk ids, except on OpenSearch Serverless vector collections, which
+    assign their own; there the `chunk_id` field carries the identity."""
     for doc in docs:
-        yield json.dumps({"index": {"_index": index, "_id": doc["chunk_id"]}})
+        action = {"_index": index, "_id": doc["chunk_id"]} if with_ids else {"_index": index}
+        yield json.dumps({"index": action})
         yield json.dumps(doc, ensure_ascii=False)
 
 
 async def ingest(
-    corpus: Corpus, client: Any, index: str, embed: Any | None, batch: int = EMBED_BATCH
+    corpus: Corpus, client: Any, index: str, embed: Any | None, batch: int = EMBED_BATCH, *, serverless: bool = False
 ) -> dict[str, Any]:
     dimension: int | None = None
     if embed is not None:
@@ -97,12 +102,13 @@ async def ingest(
         group = corpus.chunks[start : start + batch]
         vectors = await embed([embedding_text(c) for c in group]) if embed is not None else [None] * len(group)
         docs = [document(c, corpus.version, v) for c, v in zip(group, vectors, strict=True)]
-        response = client.bulk(body="\n".join(bulk_lines(index, docs)) + "\n")
+        response = client.bulk(body="\n".join(bulk_lines(index, docs, with_ids=not serverless)) + "\n")
         if response.get("errors"):
             failed = [item["index"] for item in response["items"] if item["index"].get("error")]
             raise RuntimeError(f"Bulk indexing failed for {len(failed)} documents: {failed[0]}")
         indexed += len(docs)
-    client.indices.refresh(index=index)
+    if not serverless:  # Serverless collections refresh on their own schedule and reject the call
+        client.indices.refresh(index=index)
     return {"index": index, "indexed": indexed, "skipped": 0, "status": "indexed", "vectors": dimension is not None}
 
 
@@ -133,7 +139,9 @@ async def main(argv: list[str] | None = None) -> int:
     from ..gateway import get_gateway
 
     embed = None if settings.offline else get_gateway().embed
-    result = await ingest(corpus, opensearch_client(settings), index, embed)
+    result = await ingest(
+        corpus, opensearch_client(settings), index, embed, serverless=settings.opensearch_service == "aoss"
+    )
     print(json.dumps(result))
     return 0
 

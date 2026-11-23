@@ -139,3 +139,33 @@ def test_query_builders_and_fusion():
     chunk = get_corpus().chunks[0]
     lines = list(bulk_lines("idx", [document(chunk, "v1")]))
     assert len(lines) == 2 and chunk.id in lines[0]
+
+
+async def test_ingest_on_opensearch_serverless_sends_no_ids_and_no_refresh():
+    corpus, fake = get_corpus(), FakeOpenSearch()
+    fake.indices.refresh = lambda index: (_ for _ in ()).throw(AssertionError("refresh is rejected on Serverless"))
+    seen: list[dict] = []
+    original = fake.bulk
+
+    def bulk(body):
+        import json
+
+        actions = [json.loads(line) for line in body.strip().split("\n")][::2]
+        seen.extend(actions)
+        # the fake keys documents by id, so give it one the way the service would
+        lines = body.strip().split("\n")
+        rebuilt = []
+        for n, (action, doc) in enumerate(zip(lines[::2], lines[1::2], strict=True)):
+            rebuilt += [
+                json.dumps(
+                    {"index": {"_index": json.loads(action)["index"]["_index"], "_id": f"auto-{len(seen)}-{n}"}}
+                ),
+                doc,
+            ]
+        return original("\n".join(rebuilt) + "\n")
+
+    fake.bulk = bulk
+    result = await ingest(corpus, fake, "faiss-knowledge-aoss", None, batch=500, serverless=True)
+    assert result["indexed"] == len(corpus.chunks) and result["vectors"] is False
+    assert seen and all("_id" not in a["index"] for a in seen)
+    assert {d["chunk_id"] for d in fake.docs["faiss-knowledge-aoss"].values()} == set(corpus.by_id)
