@@ -1,0 +1,113 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      # setup-uv publishes no moving major tag, so it is pinned to a full version.
+      - uses: astral-sh/setup-uv@v10.4.0
+      - name: Install dependencies
+        run: uv sync
+      - name: Lint
+        run: uv run ruff check faiss_platform tests
+      # One test downloads Temporal's time-skipping test server and skips itself
+      # when it cannot.
+      - name: Test
+        run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+
+  knowledge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: knowledge
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # The build ends with the coverage gate (extractor/verify.ts).
+      - name: Build corpus and enforce the coverage gate
+        run: bun run build
+
+  helm:
+    runs-on: ubuntu-latest
+    env:
+      KUBECONFORM_VERSION: v0.8.0
+      KUBECONFORM_SHA256: 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883
+      KUBERNETES_VERSION: 1.36.0
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+        with:
+          # Same Helm version Argo CD renders the chart with.
+          version: v4.3.2
+      - name: Install kubeconform
+        run: |
+          set -euo pipefail
+          curl -fsSLo /tmp/kubeconform.tar.gz \
+            "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum --check
+          mkdir -p "${RUNNER_TEMP}/bin"
+          tar -xzf /tmp/kubeconform.tar.gz -C "${RUNNER_TEMP}/bin" kubeconform
+          echo "${RUNNER_TEMP}/bin" >> "${GITHUB_PATH}"
+      - name: Lint and render the FAISS chart for every environment
+        run: |
+          set -euo pipefail
+          for env in dev staging prod; do
+            helm lint deploy/helm/faiss -f "deploy/helm/faiss/values-${env}.yaml"
+            helm template faiss deploy/helm/faiss -n "faiss-${env}" -f "deploy/helm/faiss/values-${env}.yaml" \
+              | kubeconform -strict -ignore-missing-schemas -kubernetes-version "${KUBERNETES_VERSION}" -summary -
+          done
+      - name: Lint the Argo CD bootstrap chart and manifests
+        run: |
+          set -euo pipefail
+          helm lint deploy/argocd/bootstrap
+          helm template faiss-bootstrap deploy/argocd/bootstrap -n argocd \
+            | kubeconform -strict -ignore-missing-schemas -summary -
+          kubeconform -strict -ignore-missing-schemas -summary deploy/argocd/clusters
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.15.2
+      - name: Format check
+        run: terraform fmt -check -recursive deploy/terraform
+      - name: Validate every stack
+        run: |
+          set -euo pipefail
+          for stack in dev prod; do
+            terraform -chdir="deploy/terraform/envs/${stack}" init -backend=false -input=false
+            terraform -chdir="deploy/terraform/envs/${stack}" validate
+          done

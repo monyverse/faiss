@@ -1,0 +1,190 @@
+name: release
+
+# GitOps release flow. CI never talks to a cluster:
+#   push to main        -> build + push both images -> PR bumping image.tag in values-dev.yaml
+#   manual dispatch     -> PR bumping image.tag in values-staging.yaml or values-prod.yaml
+#                          to an image that already exists (promotion, no rebuild)
+# Argo CD deploys once the PR is merged (prod additionally needs a manual sync).
+#
+# Repository variables (Settings -> Secrets and variables -> Actions -> Variables):
+#   AWS_REGION             e.g. af-south-1
+#   ECR_REGISTRY           <account>.dkr.ecr.<region>.amazonaws.com   (terraform output ecr_registry)
+#   AWS_ECR_PUSH_ROLE_ARN  role assumed through GitHub OIDC           (terraform output ci_ecr_push_role_arn)
+# No long-lived AWS credentials are stored in GitHub.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - frontend/**
+      - knowledge/**
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to promote to
+        type: choice
+        required: true
+        options:
+          - staging
+          - prod
+      tag:
+        description: Existing image tag to promote (sha-<12 hex>)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name }}-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+  BACKEND_REPOSITORY: faiss/backend
+  WEB_REPOSITORY: faiss/web
+
+jobs:
+  build:
+    name: Build and push images
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compute the image tag
+        id: meta
+        # Immutable, content-addressed by commit. The "sha-" prefix keeps the tag a
+        # YAML string even when the hash happens to be all digits.
+        run: echo "tag=sha-${GITHUB_SHA::12}" >> "${GITHUB_OUTPUT}"
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: docker/setup-buildx-action@v4
+
+      # Build context is the repository root for both images.
+      - name: Build and push backend
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPOSITORY }}:${{ steps.meta.outputs.tag }}
+
+      - name: Build and push web
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.WEB_REPOSITORY }}:${{ steps.meta.outputs.tag }}
+
+  verify:
+    name: Check the images to promote exist
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      IMAGE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Validate the tag format
+        run: |
+          set -euo pipefail
+          if [[ ! "${IMAGE_TAG}" =~ ^sha-[0-9a-f]{12}$ ]]; then
+            echo "::error::tag must look like sha-<12 hex characters>"
+            exit 1
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Both images must already be in ECR
+        run: |
+          set -euo pipefail
+          for repository in "${BACKEND_REPOSITORY}" "${WEB_REPOSITORY}"; do
+            aws ecr describe-images --repository-name "${repository}" --image-ids "imageTag=${IMAGE_TAG}" \
+              --query 'imageDetails[0].imageDigest' --output text
+          done
+
+  pull-request:
+    name: Open the values bump pull request
+    needs: [build, verify]
+    # Exactly one of build / verify runs per event; the other is skipped.
+    if: ${{ !cancelled() && (needs.build.result == 'success' || needs.verify.result == 'success') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      TARGET_ENV: ${{ github.event_name == 'push' && 'dev' || inputs.environment }}
+      IMAGE_TAG: ${{ github.event_name == 'push' && needs.build.outputs.tag || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Bump image.tag
+        id: bump
+        run: |
+          set -euo pipefail
+          case "${TARGET_ENV}" in dev|staging|prod) ;; *) echo "::error::unknown environment"; exit 1 ;; esac
+          if [[ ! "${IMAGE_TAG}" =~ ^sha-[0-9a-f]{12}$ ]]; then
+            echo "::error::unexpected image tag"
+            exit 1
+          fi
+
+          file="deploy/helm/faiss/values-${TARGET_ENV}.yaml"
+          marker='# managed-by: release\.yml$'
+          matches="$(grep -cE "^  tag: .*${marker}" "${file}" || true)"
+          if [[ "${matches}" != "1" ]]; then
+            echo "::error file=${file}::expected exactly one 'tag: ... # managed-by: release.yml' line, found ${matches}"
+            exit 1
+          fi
+          sed -i -E "s|^(  tag: ).*(# managed-by: release\.yml)$|\1\"${IMAGE_TAG}\" \2|" "${file}"
+
+          if git diff --quiet -- "${file}"; then
+            echo "${file} is already at ${IMAGE_TAG}; nothing to do."
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Commit and open the pull request
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          branch="release/${TARGET_ENV}-${IMAGE_TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "${branch}"
+          git commit -am "deploy(${TARGET_ENV}): faiss ${IMAGE_TAG}"
+          git push --force-with-lease origin "${branch}"
+
+          sync_note="Argo CD syncs faiss-${TARGET_ENV} automatically after merge."
+          if [[ "${TARGET_ENV}" == "prod" ]]; then
+            sync_note="faiss-prod does not auto-sync: after merge, an operator must sync it in Argo CD."
+          fi
+          if [[ -z "$(gh pr list --head "${branch}" --state open --json number --jq '.[].number')" ]]; then
+            gh pr create --base main --head "${branch}" \
+              --title "deploy(${TARGET_ENV}): faiss ${IMAGE_TAG}" \
+              --body "Sets \`image.tag\` to \`${IMAGE_TAG}\` in \`deploy/helm/faiss/values-${TARGET_ENV}.yaml\`. ${sync_note} To roll back, revert this pull request."
+          fi
