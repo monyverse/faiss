@@ -1,0 +1,12 @@
+SYNTHETIC DATA — Savanna Commercial Bank is a fictional institution created for testing FAISS.
+
+SAVANNA COMMERCIAL BANK PLC — LEGAL SCHEDULE
+
+1. LITIGATION AND CLAIMS
+The bank is defendant in 14 legal proceedings. Contingent liabilities in respect of litigation are estimated at KES 310 million, of which KES 120 million is provided for. The largest single claim is a dispute with a former borrower over security realisation.
+
+2. MATERIAL CONTRACTS
+The core banking licence agreement and the card processing agreement each contain change of control clauses requiring the counterparty's consent to an assignment or a change in ownership. The head office lease may be terminated by the landlord on a change of control.
+
+3. SHAREHOLDERS
+The articles of association grant existing shareholders pre-emption rights on any transfer of shares. The ownership structure comprises three shareholders holding 55%, 30% and 15%.

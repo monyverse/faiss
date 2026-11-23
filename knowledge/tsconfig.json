@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["bun"],
+    "baseUrl": ".",
+    "paths": {
+      "@/components/learning/Term": ["./extractor/stubs/components/learning/Term.tsx"],
+      "@/*": ["./source/deal/src/*"]
+    }
+  },
+  "include": ["extractor/**/*.ts", "extractor/**/*.tsx"]
+}

@@ -1,0 +1,788 @@
+{
+  "corpusVersion": "45c93a907f45",
+  "snapshotHash": "ebb7e4a4278695bac9a29331b1006e6b95b9d5e10050ebfa909c2645ab7af9f0",
+  "snapshotFiles": 215,
+  "chunkCount": 1689,
+  "characters": 1525274,
+  "byOrigin": {
+    "data": 1533,
+    "copy": 116,
+    "history": 40
+  },
+  "byArea": {
+    "deal-archetypes": 28,
+    "design-history": 40,
+    "governance": 9,
+    "governance/roles": 23,
+    "institutional-learning/experienced-coach": 18,
+    "institutional-learning/pathways/central-hub": 82,
+    "institutional-learning/pathways/executive-sponsor": 74,
+    "institutional-learning/pathways/foundations": 33,
+    "institutional-learning/pathways/in-country-pmo": 65,
+    "institutional-learning/pathways/workstream-lead": 73,
+    "institutional-learning/pathways/workstream-project-manager": 66,
+    "institutional-learning/pathways/workstream-team-member": 58,
+    "lifecycle": 283,
+    "mobilisation": 80,
+    "operating-model": 37,
+    "operating-model/central-hub": 60,
+    "operating-model/functional-spokes": 493,
+    "operating-model/regional-spokes": 18,
+    "operating-model/success-factors": 7,
+    "partner-acceleration": 12,
+    "site-copy": 116,
+    "vision": 14
+  },
+  "hashes": {
+    "chunks.jsonl": "45c93a907f45ca8e7a7949f9d639421d41bc85f7e8be19edb318b7216bcbd923",
+    "ontology.json": "7b8a4832626d47d3822629466626b7c6b2f65247126958275db25451ee84988e"
+  },
+  "dataModules": [
+    {
+      "rel": "lib/archetypes.ts",
+      "exports": [
+        "ALL_WORKSTREAMS",
+        "ARCHETYPES",
+        "ARTEFACTS",
+        "EXAMPLE_ARTEFACTS",
+        "EXAMPLE_DEAL",
+        "REQUIREMENT_LABEL"
+      ]
+    },
+    {
+      "rel": "lib/central-hub-mandate.ts",
+      "exports": [
+        "HUB_MANDATE_ROWS",
+        "HUB_RACI_COLUMNS",
+        "HUB_RACI_FULL_ROWS",
+        "HUB_RESPONSIBILITY_ROWS",
+        "RACI_APPLICATION_NOTE"
+      ]
+    },
+    {
+      "rel": "lib/central-hub.ts",
+      "exports": [
+        "ARCHETYPE_SHAPES",
+        "CENTRAL_GUARDRAILS",
+        "DASHBOARD_COUNTRIES",
+        "DASHBOARD_HEADLINES",
+        "DASHBOARD_MEASURES",
+        "DASHBOARD_READINESS",
+        "DECISION_CATEGORIES",
+        "DELIVERY_INTERACTIONS",
+        "GUARDRAIL_GROUPS",
+        "HUB_ARCHETYPES",
+        "HUB_JOURNEY",
+        "HUB_KEY_ACTIVITIES",
+        "HUB_LAYERS",
+        "HUB_RESPONSIBILITIES",
+        "HUB_ROLES",
+        "LAYER_DETAILS",
+        "MATURITY_VIEWS",
+        "RACI_ROWS",
+        "ROLE_SUMMARIES"
+      ]
+    },
+    {
+      "rel": "lib/change-management-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/comms-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/compliance-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/cres-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/data-migration-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/e2e-testing-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/experienced-coach.ts",
+      "exports": [
+        "COACH_BOUNDARY",
+        "COACH_EXPERIENCE",
+        "COACH_EXPERIENCE_NOTE",
+        "COACH_INVOLVEMENT",
+        "COACH_INVOLVEMENT_INTRO",
+        "COACH_LEVELS",
+        "COACH_MANDATE",
+        "COACH_NOT_BY_DEFAULT",
+        "COACH_PURPOSE",
+        "COACH_RESPONSIBILITIES",
+        "COACH_SUCCESS",
+        "COACH_SUMMARY",
+        "COACH_WHEN_TO_INVOLVE"
+      ]
+    },
+    {
+      "rel": "lib/finance-tax-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/governance-forums.ts",
+      "exports": [
+        "GOVERNANCE_FORUMS"
+      ]
+    },
+    {
+      "rel": "lib/human-capital-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/independent-assurance-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/internal-audit-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/kyc-aml-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/ld1-readiness-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/learning/central-hub-modules.ts",
+      "exports": [
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "CUTOFF_OPTIONS",
+        "CUTOFF_SITUATION",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "LENS_NOTES",
+        "MOBILISE_GAPS",
+        "MOBILISE_SNAPSHOT",
+        "MODULES",
+        "PAPER_OPTIONS",
+        "PAPER_PARTS",
+        "PAPER_SITUATION",
+        "PLAYBOOK_PROMPTS",
+        "READINESS_OPTIONS",
+        "SORT_COLUMNS",
+        "SORT_ITEMS",
+        "TEACHING_IDS",
+        "VIEW_LINES",
+        "VIEW_OPTIONS"
+      ]
+    },
+    {
+      "rel": "lib/learning/central-hub.ts",
+      "exports": [
+        "BASELINE_STEPS",
+        "BOUNDARY",
+        "BOUNDARY_OWNS",
+        "CONTROL_LOOP",
+        "CORE_RESOURCES",
+        "DECIDE_LENS_NOTE",
+        "DECISION_FLOW",
+        "DECISION_FLOW_WARNING",
+        "ECONOMICS",
+        "GOVERNANCE_FLOW",
+        "HUB_FUNCTIONS",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "LENSES",
+        "LENS_WARNING",
+        "MANDATE",
+        "MATCHING",
+        "MOBILISATION_FOCUS",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RELATIONSHIPS",
+        "RELEVANT_RESOURCES",
+        "REPORTING_RULES",
+        "RESOURCE_EMPHASIS",
+        "ROLE_PROMPTS",
+        "ROLE_TABLE",
+        "ROLE_TABLE_NOTE",
+        "SCENARIOS",
+        "SECTIONS",
+        "START_STEPS",
+        "SUCCESS_MEASURES",
+        "TEMPLATE_NOTICE"
+      ]
+    },
+    {
+      "rel": "lib/learning/executive-sponsor-modules.ts",
+      "exports": [
+        "BRIEF_GAPS",
+        "BRIEF_SNAPSHOT",
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "MODULES",
+        "PAPER_OPTIONS",
+        "PAPER_SITUATION",
+        "PLAYBOOK_PROMPTS",
+        "READINESS_OPTIONS",
+        "READINESS_SITUATION",
+        "RESOURCE_OPTIONS",
+        "RESOURCE_SITUATION",
+        "SORT_COLUMNS",
+        "SORT_ITEMS",
+        "TEACHING_IDS"
+      ]
+    },
+    {
+      "rel": "lib/learning/executive-sponsor.ts",
+      "exports": [
+        "AUTHORITY_GUIDANCE",
+        "AUTHORITY_TEST",
+        "AVOID_UNDERMINING",
+        "BOUNDARIES",
+        "BOUNDARY_COLS",
+        "BOUNDARY_ROWS",
+        "CHAIN",
+        "CHALLENGE_QUESTIONS",
+        "CONTRIBUTIONS",
+        "CORE_RESOURCES",
+        "DEF",
+        "EXEC_VIEW",
+        "GLOSSARY",
+        "GO_FLOW",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "LOOP",
+        "MANDATE",
+        "MATCHING",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RESOURCE_NOTICE",
+        "SCENARIOS",
+        "SECTIONS",
+        "START_STEPS",
+        "SUCCESS_MEASURES",
+        "SUPPORT_DELEGATION",
+        "VALUE_VISIBILITY"
+      ]
+    },
+    {
+      "rel": "lib/learning/foundations.tsx",
+      "exports": [
+        "CASES",
+        "CASE_PRINCIPLES",
+        "CAUTIONARY",
+        "CLASSIFY",
+        "CLOSING",
+        "CLOSING_LINKS",
+        "CONVERT",
+        "DEFS",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_PASS",
+        "HEATMAP",
+        "MATCHES",
+        "MODULES",
+        "NEW_FACTS",
+        "OPENING_QUESTIONS",
+        "PHASES",
+        "RANK_LIMIT",
+        "SCENARIO",
+        "SKIPPABLE",
+        "SOURCES",
+        "TOTAL_MINUTES"
+      ]
+    },
+    {
+      "rel": "lib/learning/in-country-pmo-modules.ts",
+      "exports": [
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "CONTEXT_NOTES",
+        "DEFECT_OPTIONS",
+        "DEFECT_SITUATION",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "ESCALATION_PARTS",
+        "HANDOFF_LINES",
+        "HANDOFF_OPTIONS",
+        "MODULES",
+        "PLAN_GAPS",
+        "PLAN_SNAPSHOT",
+        "PLAYBOOK_PROMPTS",
+        "READINESS_AREAS",
+        "READINESS_OPTIONS",
+        "SORT_ITEMS",
+        "STATUS_OPTIONS",
+        "TEACHING_IDS"
+      ]
+    },
+    {
+      "rel": "lib/learning/in-country-pmo.ts",
+      "exports": [
+        "BETWEEN_REHEARSALS",
+        "BOUNDARY",
+        "BOUNDARY_OWNS",
+        "CONTEXTS",
+        "CONTEXT_WARNING",
+        "CONTROL_RHYTHM",
+        "CORE_RESOURCES",
+        "ECONOMICS",
+        "FIREFIGHTING",
+        "GLOSSARY",
+        "HANDOFF_TEST",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "MANDATE",
+        "MATCHING",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RELATIONSHIPS",
+        "RELEVANT_RESOURCES",
+        "SCENARIOS",
+        "SECTIONS",
+        "START_STEPS",
+        "SUCCESS_MEASURES",
+        "TEMPLATE_NOTICE"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-lead-modules.ts",
+      "exports": [
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "DECISION_SEQUENCE",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "ECONOMICS_NOTE",
+        "ESCALATION_INFO",
+        "ESCALATION_MISSING",
+        "ESCALATION_STRONG",
+        "ESCALATION_WEAK",
+        "MOBILISE_ACTIONS",
+        "MOBILISE_GAPS",
+        "MODULES",
+        "PLAN_LINE",
+        "PLAN_MISSING",
+        "PLAN_PARTS",
+        "PLAN_STEPS",
+        "PLAN_WEAK",
+        "PLAYBOOK_PROMPTS",
+        "READINESS_CHECK",
+        "READINESS_RESOURCES",
+        "READINESS_STATEMENTS",
+        "READINESS_TEMPLATE_WARNING",
+        "RHYTHM",
+        "SORT_ITEMS",
+        "STATUS_COMPARE",
+        "STATUS_EVIDENCE",
+        "STATUS_OPTIONS",
+        "TEACHING_IDS",
+        "TOTAL_MINUTES"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-lead.ts",
+      "exports": [
+        "BOUNDARY",
+        "CORE_RESOURCES",
+        "ECONOMICS",
+        "GLOSSARY",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "MANDATE",
+        "MATCHING",
+        "MOBILISE_STEPS",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RELEVANT_RESOURCES",
+        "ROLES",
+        "SCENARIOS",
+        "SECTIONS",
+        "STATUS_CONTENT",
+        "SUCCESS_MEASURES",
+        "WEEKLY_RHYTHM",
+        "WORKSTREAM_LEAD_TEMPLATE_NOTICE"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-project-manager-modules.ts",
+      "exports": [
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "CONTROL_OPTIONS",
+        "CONTROL_TYPES",
+        "CONTROL_UPDATE",
+        "CYCLE",
+        "DECISION_PARTS",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "ESCALATION_STRONG",
+        "ESCALATION_WEAK",
+        "MODULES",
+        "PAPER",
+        "PAPER_MISSING",
+        "PLAN_LINE",
+        "PLAN_MISSING",
+        "PLAN_PARTS",
+        "PLAN_STEPS",
+        "PLAN_WEAK",
+        "PLAYBOOK_PROMPTS",
+        "READINESS_AREAS",
+        "READINESS_OPTIONS",
+        "SORT_ITEMS",
+        "STATUS_COMPARE",
+        "STATUS_EVIDENCE",
+        "STATUS_OPTIONS",
+        "TEACHING_IDS"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-project-manager.ts",
+      "exports": [
+        "AUTHORITY_TEST",
+        "BOUNDARY",
+        "CHANGE_ITEMS",
+        "CORE_RESOURCES",
+        "ECONOMICS",
+        "GLOSSARY",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "MANDATE",
+        "MATCHING",
+        "MEETING_BEFORE",
+        "PLAN_QUALITY",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RAID_ITEMS",
+        "RELEVANT_RESOURCES",
+        "RESOURCE_NOTICE",
+        "ROLES",
+        "SCENARIOS",
+        "SECTIONS",
+        "START_STEPS",
+        "WEEKLY_CYCLE"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-team-member-modules.ts",
+      "exports": [
+        "CAPABILITIES",
+        "CAPSTONE",
+        "CAPSTONE_DECISIONS",
+        "COMPLETION_COMPARE",
+        "CUTOVER_OPTIONS",
+        "CUTOVER_SITUATION",
+        "DIAGNOSTIC",
+        "DIAGNOSTIC_DECISIONS",
+        "EVIDENCE_OPTIONS",
+        "MODULES",
+        "MOMENTS",
+        "PLAYBOOK_PROMPTS",
+        "RAISE_OPTIONS",
+        "RAISE_PARTS",
+        "RAISE_SITUATION",
+        "RAISE_TYPES",
+        "SORT_ITEMS",
+        "START_BRIEF",
+        "START_GAPS",
+        "TASK_PARTS",
+        "TEACHING_IDS"
+      ]
+    },
+    {
+      "rel": "lib/learning/workstream-team-member.ts",
+      "exports": [
+        "BOUNDARY",
+        "CONFIDENTIAL_ITEMS",
+        "CONTRIBUTIONS",
+        "CORE_RESOURCES",
+        "CUTOVER_ITEMS",
+        "DECISION_TEST",
+        "ECONOMICS",
+        "EVIDENCE_CHECKS",
+        "GLOSSARY",
+        "INTENSITY",
+        "LEARNING_OUTCOMES",
+        "MANDATE",
+        "MATCHING",
+        "PLAYBOOK",
+        "PRINCIPLES",
+        "QUESTIONS",
+        "RAID_ITEMS",
+        "RELEVANT_RESOURCES",
+        "RESOURCE_NOTICE",
+        "ROLES",
+        "SCENARIOS",
+        "SECTIONS",
+        "START_STEPS",
+        "TASK_CYCLE",
+        "TESTING_ITEMS"
+      ]
+    },
+    {
+      "rel": "lib/legal-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/lifecycles.ts",
+      "exports": [
+        "LIFECYCLES",
+        "REQUIREMENT_GROUPS"
+      ]
+    },
+    {
+      "rel": "lib/mobilisation.ts",
+      "exports": [
+        "AREAS",
+        "BUCKETS",
+        "BUCKET_GROUPS",
+        "DAY_DETAILS",
+        "DAY_LANES",
+        "JOURNEY_STAGES",
+        "PENDING_DETAIL",
+        "ROADMAP_STAGES",
+        "STAGE_ENTRIES"
+      ]
+    },
+    {
+      "rel": "lib/operating-model.ts",
+      "exports": [
+        "ACCOUNTABILITY_MATRIX",
+        "COMPONENTS",
+        "DEAL_JOURNEY",
+        "GOVERNANCE_ROLES",
+        "PARTNER_CAPABILITIES",
+        "RESOURCING",
+        "SPOKES"
+      ]
+    },
+    {
+      "rel": "lib/ops-servicing-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/partner-acceleration.ts",
+      "exports": [
+        "ACTIVATION_ACTIONS",
+        "PARTNER_NODES",
+        "RELATIONSHIP_STATUSES",
+        "SERVICE_CATALOGUE",
+        "TBC",
+        "TBC_AREA"
+      ]
+    },
+    {
+      "rel": "lib/procurement-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/product-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/regional-spoke.ts",
+      "exports": [
+        "CENTRALISATION_PRINCIPLES",
+        "CROSS_CUTTING_MINIMUM",
+        "MATURITY_DIMENSIONS",
+        "MINIMUM_CAPABILITY_INTRO",
+        "REGIONAL_KEY_ACTIVITIES",
+        "REGIONAL_MANDATE",
+        "REGIONAL_RACI",
+        "REGIONAL_RESPONSIBILITIES",
+        "REGIONAL_ROLE_PROFILES",
+        "WORKSTREAM_MINIMUMS"
+      ]
+    },
+    {
+      "rel": "lib/risk-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/role-attention.ts",
+      "exports": [
+        "ROLE_ATTENTION"
+      ]
+    },
+    {
+      "rel": "lib/role-profiles.ts",
+      "exports": [
+        "ROLE_PROFILES"
+      ]
+    },
+    {
+      "rel": "lib/success-factors.ts",
+      "exports": [
+        "SUCCESS_FACTORS"
+      ]
+    },
+    {
+      "rel": "lib/technology-spoke.ts",
+      "exports": [
+        "CONTENT"
+      ]
+    },
+    {
+      "rel": "lib/vision-content.ts",
+      "exports": [
+        "BUILD_STEPS",
+        "CONNECTED",
+        "FRAGMENTED",
+        "LENSES",
+        "OUTCOMES",
+        "OVERARCHING_PRINCIPLES",
+        "VISION"
+      ]
+    }
+  ],
+  "copyFiles": [
+    "components/BackToHub.tsx",
+    "components/CapabilityHubMap.tsx",
+    "components/ContentDirectory.tsx",
+    "components/FunctionQuickNav.tsx",
+    "components/GlobalSearch.tsx",
+    "components/GovernanceAccountabilityStructure.tsx",
+    "components/GovernanceStructure.tsx",
+    "components/GovernanceTermsOfReference.tsx",
+    "components/HubRolesAccountability.tsx",
+    "components/LensPrinciples.tsx",
+    "components/MobilisationBlocks.tsx",
+    "components/PageToolbar.tsx",
+    "components/PartnerSupportTable.tsx",
+    "components/SiteHeader.tsx",
+    "components/SpokePlaceholderPage.tsx",
+    "components/SpokeWorkstreamPage.tsx",
+    "components/TemplatePlaceholders.tsx",
+    "components/VideoPlaceholders.tsx",
+    "components/Wayfinding.tsx",
+    "components/learning/ExecutionGap.tsx",
+    "components/learning/FoundationsLink.tsx",
+    "components/learning/Term.tsx",
+    "routes/__root.tsx",
+    "routes/browse.tsx",
+    "routes/deal-governance.tsx",
+    "routes/deal-lifecycle.tsx",
+    "routes/design-principles.tsx",
+    "routes/hall-of-fame.tsx",
+    "routes/index.tsx",
+    "routes/learning.central-hub.$moduleId.tsx",
+    "routes/learning.central-hub.index.tsx",
+    "routes/learning.executive-sponsor.$moduleId.tsx",
+    "routes/learning.executive-sponsor.index.tsx",
+    "routes/learning.foundations.$moduleId.tsx",
+    "routes/learning.foundations.index.tsx",
+    "routes/learning.in-country-pmo.$moduleId.tsx",
+    "routes/learning.in-country-pmo.index.tsx",
+    "routes/learning.index.tsx",
+    "routes/learning.workstream-lead.$moduleId.tsx",
+    "routes/learning.workstream-lead.index.tsx",
+    "routes/learning.workstream-project-manager.$moduleId.tsx",
+    "routes/learning.workstream-project-manager.index.tsx",
+    "routes/learning.workstream-team-member.$moduleId.tsx",
+    "routes/learning.workstream-team-member.index.tsx",
+    "routes/mobilisation.$bucketId.tsx",
+    "routes/mobilisation.index.tsx",
+    "routes/operating-model.assurance.tsx",
+    "routes/operating-model.central-hub.tsx",
+    "routes/operating-model.component.$componentId.tsx",
+    "routes/operating-model.design-principles.tsx",
+    "routes/operating-model.forums.$forumId.tsx",
+    "routes/operating-model.governance.tsx",
+    "routes/operating-model.index.tsx",
+    "routes/operating-model.journey.tsx",
+    "routes/operating-model.raci.tsx",
+    "routes/operating-model.regional.$spokeId.tsx",
+    "routes/operating-model.remedial-actions.tsx",
+    "routes/operating-model.roles.$roleId.tsx",
+    "routes/operating-model.roles.experienced-coach.tsx",
+    "routes/operating-model.spokes.$spokeId.tsx",
+    "routes/operating-model.spokes.change-management.tsx",
+    "routes/operating-model.spokes.compliance.tsx",
+    "routes/operating-model.spokes.data-migration.tsx",
+    "routes/operating-model.spokes.finance-tax.tsx",
+    "routes/operating-model.spokes.independent-assurance.tsx",
+    "routes/operating-model.spokes.index.tsx",
+    "routes/operating-model.spokes.kyc-aml.tsx",
+    "routes/operating-model.spokes.ld1-readiness.tsx",
+    "routes/operating-model.spokes.procurement.tsx",
+    "routes/operating-model.spokes.risk.tsx",
+    "routes/operating-model.spokes.technology.tsx",
+    "routes/operating-model.success-factors.tsx",
+    "routes/partner-acceleration.tsx",
+    "routes/vision.tsx"
+  ],
+  "historyFiles": [
+    ".lovable/plan/absa-logo-revised-question-2-options-2026-08-24.md",
+    ".lovable/plan/add-two-geography-questions-to-the-deal-intake-assessment-2026-08-25.md",
+    ".lovable/plan/align-the-operating-model-to-the-v0-3-document-2026-09-18.md",
+    ".lovable/plan/make-internal-audit-part-of-the-operating-model-diagram-2026-09-18.md",
+    ".lovable/plan/redesign-the-hub-user-journey-and-navigation-2026-09-25.md",
+    ".lovable/plan/workstream-centralisation-logic-page-2026-09-22.md",
+    "roadmap.md"
+  ],
+  "skipped": {
+    "src/lib/utils.ts": "class-name helper, no content",
+    "src/lib/error-capture.ts": "runtime error plumbing, no content",
+    "src/lib/error-page.ts": "runtime error page markup, no methodology content",
+    "src/lib/lovable-error-reporting.ts": "runtime error plumbing, no content",
+    "src/lib/deal-context.ts": "browser state hook, no content",
+    "src/lib/search-index.ts": "derives a search index from other modules that are ingested directly",
+    "src/lib/spoke-registry.ts": "re-exports the per-workstream modules that are ingested directly",
+    "src/lib/spoke-content.ts": "type definitions only",
+    "src/lib/ai-agent.ts": "placeholder for the agent URL (this platform is that agent)",
+    "src/server.ts": "server-side rendering error wrapper, no content",
+    "src/lib/learning/*-progress.ts": "browser progress-tracking hooks, no content",
+    "src/components/ui/*": "generic UI primitives, no content",
+    "src/routeTree.gen.ts": "generated router tree"
+  }
+}

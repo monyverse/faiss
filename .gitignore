@@ -1,0 +1,28 @@
+# tooling and local state
+.tools/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+var/
+dist/
+.output/
+.tanstack/
+.nitro/
+.vinxi/
+.DS_Store
+
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+backend.hcl

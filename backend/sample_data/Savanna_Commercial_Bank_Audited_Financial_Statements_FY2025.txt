@@ -1,0 +1,35 @@
+SYNTHETIC DATA — Savanna Commercial Bank is a fictional institution created for testing FAISS.
+
+SAVANNA COMMERCIAL BANK PLC
+AUDITED FINANCIAL STATEMENTS FOR THE YEAR ENDED 31 DECEMBER 2025
+All amounts in KES millions unless otherwise stated.
+
+INDEPENDENT AUDITOR'S REPORT
+In our opinion the financial statements give a true and fair view of the financial position of the bank.
+
+STATEMENT OF COMPREHENSIVE INCOME                      Note      2025        2024
+Interest income                                           4     24,910      22,480
+Interest expense                                          5    (10,590)     (9,870)
+Net interest income                                              14,320      12,610
+Non-interest income                                       6       6,180       5,740
+Operating expenses                                        7     (11,070)    (10,260)
+Credit impairment charge                                  8      (2,950)     (2,310)
+Profit before tax                                                 6,480       5,780
+Income tax expense                                        9      (2,070)     (1,840)
+Profit for the year                                               4,410       3,940
+
+STATEMENT OF FINANCIAL POSITION                        Note      2025        2024
+Cash and balances with the central bank                  10      21,300      19,850
+Loans and advances to customers                          11     112,400     101,700
+Investment securities                                    12      38,900      35,200
+Interest-earning assets                                         158,600     144,300
+Total assets                                                    184,250     168,900
+Customer deposits                                        14     141,900     130,400
+Total equity                                                     24,860      22,110
+
+CREDIT QUALITY
+Non-performing loans                                     11      12,930      10,420
+Loan loss provisions                                     11       7,240       6,010
+
+CAPITAL
+The capital adequacy ratio at year end was 17.9% against a regulatory minimum of 14.5%. Tier 1 capital was 15.2%.

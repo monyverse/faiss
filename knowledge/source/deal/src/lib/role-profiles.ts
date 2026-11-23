@@ -1,0 +1,230 @@
+export interface RoleProfile {
+  /** Matches GovernanceRole.id */
+  id: string;
+  heading: string;
+  purpose: string;
+  reportsTo: string;
+  directReports: string;
+  coreResponsibilities: string[];
+  successMeasures: string[];
+  experienceProfile: string[];
+}
+
+export const ROLE_PROFILES: RoleProfile[] = [
+  {
+    id: "executive-sponsor",
+    heading: "Executive Sponsor (Accountable Executive, AE)",
+    purpose:
+      "The Executive Sponsor is the senior executive accountable for the overall strategic, commercial and organisational success of the transaction. The role provides executive sponsorship, strategic direction and decision-making authority across the integration, separation or transition programme, ensuring that execution remains aligned to the deal rationale, business case and intended end-state. The Executive Sponsor acts as the ultimate internal escalation point for material transaction matters and ensures that the Transaction Director and programme team have the organisational authority, resources and executive support required to deliver the transaction successfully.",
+    reportsTo:
+      "Group / Business Executive Committee, CEO or relevant Board-level governance, depending on the transaction.",
+    directReports:
+      "Transaction Director and senior Executives responsible for major functional or business workstreams.",
+    coreResponsibilities: [
+      "Set the strategic direction and success criteria for the transaction",
+      "Own executive accountability for the transaction outcome",
+      "Sponsor and empower the Transaction Director and programme leadership",
+      "Make or sponsor material transaction-level decisions",
+      "Resolve enterprise-level conflicts, blockers and resource constraints",
+      "Maintain alignment between execution, the business case and strategic intent",
+      "Chair or provide executive leadership into key transaction governance forums",
+      "Oversee material transaction risks, readiness and Go / No-Go decisions",
+      "Maintain executive and Board-level stakeholder alignment and sponsorship",
+      "Ensure the organisation remains committed to transaction priorities through execution",
+    ],
+    successMeasures: [
+      "Strategic alignment: The integration, separation or transition remains aligned to the transaction rationale, business case and intended operating model.",
+      "Executive decision effectiveness: Material decisions are made quickly, at the appropriate level, without unnecessary delay to the programme.",
+      "Organisational commitment: Business and functional leaders consistently prioritise transaction requirements and provide the resources needed to deliver.",
+      "Transaction outcome: The transaction achieves its intended strategic, commercial and operational objectives.",
+      "Risk oversight: Material risks are understood, appropriately mitigated or formally accepted by the relevant executive authority before key transaction milestones.",
+      "Governance effectiveness: The Transaction Director and programme team have clear sponsorship, decision rights and escalation routes throughout execution.",
+      "Readiness: Legal Day 1, Business Day 1 and other major transaction tollgates are supported by an evidence-based view of organisational readiness.",
+      "Value protection: Material threats to the business case, customer outcomes, synergies, stranded costs or other transaction economics are identified and addressed at executive level.",
+      "Stakeholder alignment: Executive Committee, Board and other senior stakeholders remain appropriately informed, aligned and supportive of the transaction.",
+      "Delivery sponsorship: Cross-functional conflicts, organisational barriers and resource constraints are resolved quickly enough to protect critical transaction milestones.",
+    ],
+    experienceProfile: [
+      "Senior executive leadership experience with sufficient organisational authority to make or sponsor enterprise-level decisions",
+      "Strong understanding of the organisation’s strategy, operating model and commercial priorities",
+      "Experience sponsoring complex, cross-functional transformation, M&A or other enterprise-critical programmes",
+      "Strong commercial judgement and ability to assess decisions in the context of the transaction business case and strategic rationale",
+      "Ability to operate effectively with incomplete information and make timely decisions under transaction deadlines",
+      "Strong understanding of executive governance, risk ownership and organisational accountability",
+      "Ability to challenge functional leaders and resolve competing business priorities",
+      "Confidence engaging with Board, Executive Committee, regulators and other senior stakeholders where required",
+      "Ability to sponsor difficult trade-offs across scope, timing, cost, risk and customer or employee outcomes",
+      "Strong judgement regarding which matters should remain delegated to the Transaction Director and which require executive intervention",
+      "Ability to secure organisational commitment, resource and funding for the transaction",
+      "Sufficient capacity and engagement to remain actively involved through major programme decisions, readiness tollgates, cutover and stabilisation",
+    ],
+  },
+  {
+    id: "transaction-director",
+    heading: "Transaction Director",
+    purpose:
+      "The Transaction Director is the senior business-side leader accountable for the successful execution of the integration, separation or transition arising from an M&A transaction. The role translates the strategic intent and contractual requirements of the transaction into an executable programme, establishes the organisation and governance required to deliver it, and drives the business towards successful Legal Day 1, Business Day 1 and post-close stabilisation.",
+    reportsTo: "Exec Sponsor",
+    directReports: "Central PMO Office",
+    coreResponsibilities: [
+      "Translate the deal into an executable transaction programme",
+      "Mobilise the transaction organisation",
+      "Own the integrated execution plan",
+      "Drive cross-functional execution and resolve barriers",
+      "Lead programme governance and decision-making",
+      "Manage the buyer/seller execution relationship",
+      "Own programme-level risk and readiness",
+      "Drive cutover, Day 1 and stabilisation",
+    ],
+    successMeasures: [
+      "Execution: Critical milestones achieved; dependencies actively managed; timely resolution of programme-level issues.",
+      "Readiness: Evidence-based Legal Day 1 and Business Day 1 readiness; critical testing completed; material residual risks understood and accepted.",
+      "Business continuity: Minimal disruption to customers, employees, suppliers and critical operations.",
+      "Transaction outcomes: Integration / separation decisions remain aligned to the strategic rationale and Target Operating Model.",
+      "Value protection: Synergies, stranded costs, TSA exits and other transaction economics remain visible and appropriately owned.",
+      "Governance: Decisions are made rapidly at the appropriate level with clear accountability and escalation.",
+      "Transition: Programme moves through cutover, stabilisation and handover without material uncontrolled residual risk.",
+    ],
+    experienceProfile: [
+      "Significant experience leading complex, cross-functional transformation or transaction programmes;",
+      "Practical understanding of M&A integration and/or separation;",
+      "Strong executive judgement under incomplete information and compressed timelines;",
+      "Ability to operate across business, operations, technology, finance, people, risk and regulatory topics without needing to be the functional SME;",
+      "Excellent stakeholder management and influencing capability;",
+      "Strong commercial judgement and understanding of the transaction rationale;",
+      "Ability to identify critical path issues and distinguish genuine constraints from solvable delivery problems;",
+      "Confidence working directly with senior executives and the counterparty;",
+      "Disciplined risk and decision management; and",
+      "Willingness to challenge BAU processes where transaction timelines require a different delivery approach",
+    ],
+  },
+  {
+    id: "programme-manager",
+    heading: "Programme Manager",
+    purpose:
+      "The Programme Manager is responsible for the day-to-day management and control of the integration, separation or transition programme arising from an M&A transaction. The Programme Manager acts as the central point of coordination across the transaction, ensuring that plans, dependencies, risks, decisions and readiness are managed consistently across the organisation.",
+    reportsTo: "Transaction Director",
+    directReports: "PMO Support",
+    coreResponsibilities: [
+      "Establish and operate the programme management framework",
+      "Own and maintain the integrated programme plan",
+      "Drive cross-workstream coordination and dependency management",
+      "Run governance, reporting and decision support",
+      "Own programme-level RAID, actions and change control",
+      "Coordinate buyer/seller programme execution",
+      "Coordinate readiness, testing and cutover management",
+      "Lead the PMO and maintain delivery discipline",
+    ],
+    successMeasures: [
+      "Plan quality: A credible and fully integrated programme plan exists, with clear owners, dependencies and critical-path milestones.",
+      "Delivery predictability: Slippage is identified early, recovery actions are established quickly and material surprises are minimised.",
+      "Cross-functional coordination: Dependencies and issues are resolved across organisational boundaries rather than remaining within individual workstreams.",
+      "Governance effectiveness: Executives receive concise, accurate information and decisions are made at the appropriate level and cadence.",
+      "Risk control: Material risks and issues have clear ownership, mitigation and escalation.",
+      "Readiness: Programme-level readiness assessments are evidence-based and inconsistencies between workstreams are surfaced before major tollgates.",
+      "Cutover preparedness: Cutover activities, dependencies, owners and escalation routes are understood and rehearsed.",
+      "Programme discipline: Workstreams consistently follow agreed planning, reporting and escalation processes.",
+    ],
+    experienceProfile: [
+      "Strong programme management experience in complex transformation or M&A environments;",
+      "Practical understanding of integration and/or separation programmes;",
+      "Excellent integrated planning and critical-path management capability;",
+      "Strong dependency, risk and issue management skills;",
+      "Ability to challenge senior Workstream Leads constructively;",
+      "Experience designing and operating executive governance;",
+      "Ability to convert detailed workstream information into concise executive reporting;",
+      "Strong facilitation and problem-solving capability;",
+      "Experience managing programme teams and project managers;",
+      "Confidence operating across business, technology, operations, risk, finance and people topics;",
+      "Ability to work effectively with a transaction counterparty; and",
+      "Strong judgement regarding when issues should be resolved at working level and when they require executive escalation.",
+    ],
+  },
+  {
+    id: "pmo-support",
+    heading: "Central PMO Support",
+    purpose:
+      "Central PMO Support provides the programme management coordination, administration and control required to support delivery of an M&A integration, separation or transition programme.The role works under the direction of the Programme Manager to maintain the programme plan, governance, reporting, RAID management, actions, decisions and programme documentation.",
+    reportsTo: "Programme Manager",
+    directReports: "NA",
+    coreResponsibilities: [
+      "Maintain programme plans and milestone tracking",
+      "Coordinate workstream reporting",
+      "Maintain RAID, actions and decision logs",
+      "Coordinate governance and programme forums",
+      "Support dependency and cross-workstream coordination",
+      "Support joint buyer/seller programme management",
+      "Support readiness, testing and cutover control",
+      "Maintain programme documentation and controls",
+    ],
+    successMeasures: [
+      "Accuracy: Programme information is reliable, current and consistent across reporting artefacts.",
+      "Timeliness: Workstream reporting, governance materials and programme updates are produced to agreed deadlines.",
+      "Control: Risks, issues, actions, decisions and dependencies are visible and actively tracked.",
+      "Governance discipline: Forums receive the correct information and actions are followed through between meetings.",
+      "Plan integrity: Milestone and programme trackers reflect the latest agreed position.",
+      "Transparency: The Programme Manager and Transaction Director have a clear view of delivery status and emerging problems.",
+      "Documentation: Programme records are organised, accessible and provide an appropriate audit trail.",
+      "Delivery support: Workstream Leads spend less time on programme administration and more time resolving substantive delivery issues.",
+    ],
+    experienceProfile: [
+      "Strong project and programme management fundamentals;",
+      "Excellent organisation and attention to detail;",
+      "Confidence working with integrated programme plans;",
+      "Experience maintaining raid, actions and decision logs;",
+      "Strong excel, powerpoint and programme reporting capability;",
+      "Ability to consolidate large volumes of information into clear programme outputs;",
+      "Disciplined document and version control;",
+      "Effective stakeholder follow-up;",
+      "Ability to identify inconsistencies and gaps in programme information;",
+      "Confidence challenging workstream leads for overdue or incomplete inputs; and",
+      "Ability to operate effectively in a fast-moving, deadline-driven environment.",
+    ],
+  },
+  {
+    id: "workstream-lead",
+    heading: "Workstream Lead",
+    purpose:
+      "The Workstream Lead is accountable for the successful delivery of a defined functional or business workstream within an integration or separation programme. The Workstream Lead acts as the primary interface between their function, the central programme team and the equivalent workstream within the buyer or seller organisation.",
+    reportsTo:
+      "Programme Manager for delivery, with functional accountability to the Accountable Executive",
+    directReports:
+      "Functional SMEs, project managers and delivery resources assigned to the workstream",
+    coreResponsibilities: [
+      "Own workstream scope, outcomes and deliverables",
+      "Develop and maintain the detailed workstream plan",
+      "Mobilise and coordinate functional resources and SMEs",
+      "Manage workstream risks, issues, assumptions and dependencies",
+      "Coordinate cross-workstream and buyer/seller dependencies",
+      "Drive functional decisions and escalate blockers promptly",
+      "Report workstream progress, readiness and exceptions to the central PMO",
+      "Own workstream readiness, testing and cutover activities",
+    ],
+    successMeasures: [
+      "Delivery against plan: Workstream milestones and deliverables are completed to agreed scope, quality and timing.",
+      "Plan quality: A credible and sufficiently detailed workstream plan is maintained, with clear owners, dependencies and completion criteria.",
+      "Functional readiness: The workstream can evidence that people, processes, technology, data and controls within its scope are ready for the relevant transaction milestone.",
+      "Risk control: Material risks and issues are identified early, have clear mitigation plans and are escalated before they threaten programme outcomes.",
+      "Dependency management: Inputs required from other workstreams or the counterparty are identified early, actively managed and resolved to the required timeline.",
+      "Decision effectiveness: Functional decisions are taken quickly at the appropriate level, with unresolved matters escalated promptly.",
+      "Reporting discipline: Status, milestones, risks and dependencies are reported accurately and consistently to the central programme team.",
+      "Cutover preparedness: Workstream cutover activities, owners, sequencing, controls and contingency arrangements are understood, tested and ready for execution.",
+    ],
+    experienceProfile: [
+      "Strong functional or business expertise within the relevant workstream area",
+      "Experience delivering complex change within the function, ideally in an M&A integration or separation environment",
+      "Ability to translate transaction requirements into detailed functional activities and deliverables",
+      "Strong planning, milestone and dependency management capability",
+      "Ability to identify and manage functional risks and issues proactively",
+      "Confidence coordinating senior SMEs and securing delivery from resources who may also have BAU responsibilities",
+      "Ability to work effectively across organisational and functional boundaries",
+      "Strong stakeholder management and communication capability",
+      "Ability to challenge assumptions and identify gaps in functional readiness",
+      "Experience working with technology, data, process and people dependencies relevant to the function",
+      "Ability to work constructively with the equivalent workstream within a buyer or seller counterparty while respecting pre-close information-sharing requirements",
+      "Strong judgement regarding when issues can be resolved within the workstream and when escalation to the Programme Manager, Transaction Director or Accountable Executive is required.",
+    ],
+  },
+];
+
+export const getRoleProfile = (id: string) => ROLE_PROFILES.find((p) => p.id === id);
